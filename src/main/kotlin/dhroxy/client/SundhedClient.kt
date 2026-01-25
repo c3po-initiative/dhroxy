@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono
 @Component
 class SundhedClient(
     private val webClient: WebClient,
-    private val props: dhroxy.config.SundhedClientProperties
+    props: dhroxy.config.SundhedClientProperties
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val forwardedHeaderNames = props.forwardedHeaders.map { it.lowercase() }.toSet()
@@ -26,7 +26,7 @@ class SundhedClient(
         til: String?,
         omraade: String?,
         incomingHeaders: HttpHeaders
-    ): dhroxy.model.LabsvarResponse? {
+    ): LabsvarResponse? {
         return webClient.get()
             .uri { builder ->
                 builder.path("/api/labsvar/svaroversigt")
@@ -44,7 +44,7 @@ class SundhedClient(
                 resp.bodyToMono<String>().defaultIfEmpty("")
                     .map { body -> ResponseStatusException(resp.statusCode(), body) }
             }
-            .bodyToMono(_root_ide_package_.dhroxy.model.LabsvarResponse::class.java)
+            .bodyToMono(LabsvarResponse::class.java)
             .awaitSingleOrNull()
     }
 

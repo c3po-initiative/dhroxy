@@ -45,6 +45,18 @@ data class Laboratorieresultat(
     val vaerdi: String? = null,
     @JsonProperty("Vaerditype")
     val vaerditype: String? = null,
+    @JsonProperty("Materiale_html")
+    val materialeHtml: String? = null,
+    @JsonProperty("Diagnose_html")
+    val diagnoseHtml: String? = null,
+    @JsonProperty("Konklusion_html")
+    val konklusionHtml: String? = null,
+    @JsonProperty("Makroskopi_html")
+    val makroskopiHtml: String? = null,
+    @JsonProperty("Mikroskopi_html")
+    val mikroskopiHtml: String? = null,
+    @JsonProperty("KliniskeInformationer_html")
+    val kliniskeInformationerHtml: String? = null,
     @JsonProperty("__type")
     val type: String? = null
 )

@@ -6,6 +6,7 @@ import dhroxy.model.QuantitativeFindings
 import dhroxy.model.Rekvisition
 import dhroxy.model.Svaroversigt
 import dhroxy.model.Undersoegelse
+import org.assertj.core.api.Assert
 import org.hl7.fhir.r4.model.Observation
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -111,5 +112,62 @@ class LabMapperTest {
         assertEquals("Test Person", observation.subject.display)
         assertNotNull(observation.valueQuantity)
         assertEquals("5.2", observation.valueQuantity.value?.toPlainString())
+    }
+
+    @Test
+    fun `maps pathology labsvar payload with narrative fields`() {
+        val result = Laboratorieresultat(
+            analysetypeId = "Patologi",
+            rekvisitionsId = "AH91-4634_910400XXX",
+            resultatStatus = "KompletSvar",
+            resultatStatuskode = "SvarEndeligt",
+            resultatdato = "1981-06-12T00:00:00.0000000+02:00",
+            vaerditype = "Tekst",
+            materialeHtml = "[1]: APPENDIX <br/>",
+            diagnoseHtml = "[1]: Sdslke flksdfjk - asdf <br/>",
+            konklusionHtml = "[01]T6XXXX csdlkj <br/>M41700sf mlksdf&#230;n&#248;s sdfnjlk<br/>",
+            mikroskopiHtml = " lkfsdms eef ...",
+            makroskopiHtml = " lksfdk ml fslkm ...",
+            kliniskeInformationerHtml = " ÆLSDF KÆFLSD: FSDÆLK. DSFSDFÆKL.",
+            vaerdi = "PATO",
+            undersoegelser = emptyList()
+        )
+
+        val rekvisition = Rekvisition(
+            id = "AH91-4634_9104004634",
+            patientCpr = "070)833281",
+            patientNavn = "John Petersen",
+            rekvirentsOrganisation = "Patologisk Institut",
+            proevetagningstidspunkt = "1984-05-07T15:00:00.0000000+02:00"
+        )
+
+        val response = LabsvarResponse(
+            svaroversigt = Svaroversigt(
+                laboratorieresultater = listOf(result),
+                rekvisitioner = listOf(rekvisition)
+            )
+        )
+
+        val bundle = mapper.toObservationBundle(response, "http://localhost/fhir/Observation")
+        assertEquals(1, bundle.total)
+        val observation = bundle.entryFirstRep.resource as Observation
+
+        // Status and code fallbacks
+        assertEquals(Observation.ObservationStatus.FINAL, observation.status)
+        assertEquals("Patologi", observation.code.text)
+
+        // Narrative value uses pathology text (cleaned)
+        val valueString = observation.valueStringType?.value
+        assertNotNull(valueString)
+        requireNotNull(valueString)
+        assert(valueString.contains("[01]T6XXXX csdlkj \nM41700sf mlksdfænøs sdfnjlk"))
+
+        // Notes include the extra pathology fields
+        val notes = observation.note.mapNotNull { it.text }
+        assert(notes.any { it.contains("Materiale") })
+        assert(notes.any { it.contains("Diagnose") })
+        assert(notes.any { it.contains("Konklusion") })
+        assert(notes.any { it.contains("Kliniske oplysninger") })
+
     }
 }

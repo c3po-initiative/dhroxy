@@ -4,12 +4,16 @@ import dhroxy.model.LabsvarResponse
 import dhroxy.model.Laboratorieresultat
 import dhroxy.model.QuantitativeFindings
 import dhroxy.model.Rekvisition
+import org.hl7.fhir.r4.model.Annotation
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
+import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Observation
+import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Reference
+import org.hl7.fhir.r4.model.StringType
 import org.springframework.stereotype.Component
 import java.security.MessageDigest
 import java.time.OffsetDateTime
@@ -25,6 +29,22 @@ class LabMapper {
                 .setCode("laboratory")
                 .setDisplay("Laboratory")
         )
+
+    private fun cleanText(html: String?): String? {
+        if (html.isNullOrBlank()) return null
+        return html
+            .replace("<br/>", "\n", ignoreCase = true)
+            .replace("<br />", "\n", ignoreCase = true)
+            .replace(Regex("<[^>]+>"), " ")
+            .replace("&nbsp;", " ")
+            .replace("&#230;", "æ")
+            .replace("&#248;", "ø")
+            .replace("&#229;", "å")
+            .replace("&#198;", "Æ")
+            .replace("&#216;", "Ø")
+            .replace("&#197;", "Å")
+            .trim()
+    }
 
     fun toObservationBundle(payload: LabsvarResponse?, requestUrl: String): Bundle {
         val svaroversigt = payload?.svaroversigt ?: return emptyBundle(requestUrl)
@@ -66,7 +86,7 @@ class LabMapper {
 
         val undersoegelse = result.undersoegelser.firstOrNull()
         observation.code = CodeableConcept().apply {
-            text = undersoegelse?.undersoegelsesNavn ?: result.resultattype ?: result.vaerditype
+            text = undersoegelse?.undersoegelsesNavn ?: result.analysetypeId ?: result.resultattype ?: result.vaerditype
             undersoegelse?.analyseKode?.let { code ->
                 addCoding(
                     Coding()
@@ -79,8 +99,13 @@ class LabMapper {
 
         extractNumericValue(undersoegelse?.quantitativeFindings)?.let { value ->
             observation.setValue(value)
-        } ?: result.vaerdi?.let { value ->
-            observation.setValue(org.hl7.fhir.r4.model.StringType(value))
+        } ?: run {
+            val narrativeValue = cleanText(result.konklusionHtml)
+                ?: cleanText(result.diagnoseHtml)
+                ?: cleanText(result.mikroskopiHtml)
+                ?: cleanText(result.makroskopiHtml)
+                ?: result.vaerdi
+            narrativeValue?.let { observation.setValue(StringType(it)) }
         }
 
         result.referenceIntervalTekst?.let {
@@ -120,23 +145,38 @@ class LabMapper {
 
         result.analysevejledningLink?.let {
             observation.note = listOf(
-                org.hl7.fhir.r4.model.Annotation().apply {
+                Annotation().apply {
                     text = "Analysevejledning: $it"
                 }
             )
         }
 
+        // Attach pathology-rich text as notes when present
+        val extraNotes = listOfNotNull(
+            cleanText(result.materialeHtml)?.let { "Materiale: $it" },
+            cleanText(result.diagnoseHtml)?.let { "Diagnose: $it" },
+            cleanText(result.konklusionHtml)?.let { "Konklusion: $it" },
+            cleanText(result.mikroskopiHtml)?.let { "Mikroskopi: $it" },
+            cleanText(result.makroskopiHtml)?.let { "Makroskopi: $it" },
+            cleanText(result.kliniskeInformationerHtml)?.let { "Kliniske oplysninger: $it" }
+        )
+        if (extraNotes.isNotEmpty()) {
+            observation.note = observation.note + extraNotes.map { txt ->
+                Annotation().apply { text = txt }
+            }
+        }
+
         return observation
     }
 
-    private fun extractNumericValue(qf: QuantitativeFindings?): org.hl7.fhir.r4.model.Quantity? {
+    private fun extractNumericValue(qf: QuantitativeFindings?): Quantity? {
         val data = qf?.data ?: return null
         if (data.size < 2) return null
         val row = data[1]
         if (row.size < 10) return null
         val value = row[9]?.toString()?.trim().orEmpty()
         if (value.isBlank() || value.equals("Ikke påvist", ignoreCase = true)) return null
-        val quantity = org.hl7.fhir.r4.model.Quantity()
+        val quantity = Quantity()
         quantity.value = value.toBigDecimalOrNull() ?: return null
         val unit = row.getOrNull(10)?.toString()?.trim().orEmpty()
         if (unit.isNotBlank()) {
@@ -154,8 +194,8 @@ class LabMapper {
         }
     }
 
-    private fun parseDateType(dateTime: String): org.hl7.fhir.r4.model.DateTimeType =
-        org.hl7.fhir.r4.model.DateTimeType(Date.from(OffsetDateTime.parse(dateTime).toInstant()))
+    private fun parseDateType(dateTime: String): DateTimeType =
+        DateTimeType(Date.from(OffsetDateTime.parse(dateTime).toInstant()))
 
     private fun parseDate(dateTime: String): Date =
         Date.from(OffsetDateTime.parse(dateTime).toInstant())
