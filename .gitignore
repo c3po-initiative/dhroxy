@@ -4,3 +4,12 @@
 /.idea
 *.iml
 .gradle-cache
+.DS_Store
+.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+
+# Built static assets (generated from frontend)
+src/main/resources/static/

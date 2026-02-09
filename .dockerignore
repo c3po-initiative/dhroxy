@@ -1,0 +1,27 @@
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+
+# Git
+.git/
+.github/
+
+# Gradle build cache (rebuilt in Docker)
+build/
+.gradle/
+
+# Frontend build artifacts (rebuilt in Docker)
+frontend/node_modules/
+frontend/build/
+
+# Pre-built static assets (rebuilt from frontend in Docker)
+src/main/resources/static/
+
+# Docs
+docs/
+*.md
+LICENSE
