@@ -25,6 +25,21 @@ class ObservationProviderIT : BaseProviderIntegrationTest() {
     }
 
     @Test
+    fun `vital-signs category routes to home measurement service`() = runBlocking {
+        coEvery { homeMeasurementService.search(any(), any()) } returns
+            bundleOf(Observation().apply { id = "obs-vs"; code.text = "blood-pressure" })
+
+        val bundle = client.search<Bundle>()
+            .forResource(Observation::class.java)
+            .where(Observation.CATEGORY.exactly().code("vital-signs"))
+            .returnBundle(Bundle::class.java)
+            .execute()
+
+        assertEquals(1, bundle.entry.size)
+        assertEquals("blood-pressure", (bundle.entry[0].resource as Observation).code.text)
+    }
+
+    @Test
     fun `medication category still returns observations (labs only)`() = runBlocking {
         coEvery { observationService.search(any(), any(), any(), any(), any()) } returns
             bundleOf(Observation().apply { id = "obs-2"; code.text = "lab" })

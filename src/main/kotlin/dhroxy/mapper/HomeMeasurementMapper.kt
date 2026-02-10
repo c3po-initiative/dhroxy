@@ -70,10 +70,10 @@ class HomeMeasurementMapper {
         }
 
         if (doc.value != null) {
-            val numericValue = doc.value.toDoubleOrNull()
-            if (numericValue != null && doc.unit != null) {
+            val bigDecimalValue = doc.value.toBigDecimalOrNull()
+            if (bigDecimalValue != null && doc.unit != null) {
                 obs.value = Quantity().apply {
-                    value = java.math.BigDecimal(numericValue.toString())
+                    value = bigDecimalValue
                     unit = doc.unit
                 }
             } else {
