@@ -463,6 +463,54 @@ class SundhedClient(
         return formatDate(date, isEndDate) + timeSuffix
     }
 
+    suspend fun fetchHenvisninger(
+        incomingHeaders: HttpHeaders
+    ): HenvisningerResponse? {
+        return webClient.get()
+            .uri("/app/DenNationaleHenvisningsformidling/api/v1/henvisninger")
+            .headers { copyForwardedHeaders(incomingHeaders, it) }
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { resp ->
+                log.warn("henvisninger request failed with status {}", resp.statusCode())
+                resp.bodyToMono<String>().defaultIfEmpty("")
+                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
+            }
+            .bodyToMono<HenvisningerResponse>()
+            .awaitSingleOrNull()
+    }
+
+    suspend fun fetchHomeMeasurements(
+        incomingHeaders: HttpHeaders
+    ): HomeMeasurementsResponse? {
+        return webClient.get()
+            .uri("/app/hjemmemaalingerborger/api/v1/maalinger")
+            .headers { copyForwardedHeaders(incomingHeaders, it) }
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { resp ->
+                log.warn("home measurements request failed with status {}", resp.statusCode())
+                resp.bodyToMono<String>().defaultIfEmpty("")
+                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
+            }
+            .bodyToMono<HomeMeasurementsResponse>()
+            .awaitSingleOrNull()
+    }
+
+    suspend fun fetchCarePlans(
+        incomingHeaders: HttpHeaders
+    ): CarePlansResponse? {
+        return webClient.get()
+            .uri("/app/planerportalborger/api/v1/plans/")
+            .headers { copyForwardedHeaders(incomingHeaders, it) }
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { resp ->
+                log.warn("care plans request failed with status {}", resp.statusCode())
+                resp.bodyToMono<String>().defaultIfEmpty("")
+                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
+            }
+            .bodyToMono<CarePlansResponse>()
+            .awaitSingleOrNull()
+    }
+
     private fun copyForwardedHeaders(incoming: HttpHeaders, outgoing: HttpHeaders) {
         forwardedHeaderNames.forEach { name ->
             val values = incoming[name]

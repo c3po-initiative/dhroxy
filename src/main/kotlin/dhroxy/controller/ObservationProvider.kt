@@ -10,7 +10,7 @@ import ca.uhn.fhir.rest.param.TokenOrListParam
 import ca.uhn.fhir.rest.server.IResourceProvider
 import ca.uhn.fhir.rest.server.SimpleBundleProvider
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails
-import dhroxy.service.MedicationOverviewService
+import dhroxy.service.HomeMeasurementService
 import dhroxy.service.ObservationService
 import org.hl7.fhir.r4.model.Observation
 import org.springframework.http.HttpHeaders
@@ -19,7 +19,8 @@ import kotlinx.coroutines.runBlocking
 
 @Component
 class ObservationProvider(
-    private val observationService: ObservationService
+    private val observationService: ObservationService,
+    private val homeMeasurementService: HomeMeasurementService
 ) : IResourceProvider {
 
     override fun getResourceType(): Class<Observation> = Observation::class.java
@@ -31,11 +32,18 @@ class ObservationProvider(
         details: ServletRequestDetails
     ): IBundleProvider {
         val categoryValue = extractCategory(category, details)
+        val headers = toHttpHeaders(details)
+        val url = requestUrl(details)
+
+        if (isVitalSignsCategory(categoryValue)) {
+            val bundle = runBlocking { homeMeasurementService.search(headers, url) }
+            return SimpleBundleProvider(bundle.entry.mapNotNull { it.resource as? Observation })
+        }
+
         val (fra, til) = extractDateRange(date, details.parameters["date"])
         val omraade = mapCategoryToOmraade(categoryValue)
-        val headers = toHttpHeaders(details)
         val bundle = runBlocking {
-            observationService.search(headers, fra, til, omraade, requestUrl(details))
+            observationService.search(headers, fra, til, omraade, url)
         }
         return SimpleBundleProvider(bundle.entry.mapNotNull { it.resource as? Observation })
     }
@@ -83,6 +91,12 @@ class ObservationProvider(
             }
         }
         return fra to til
+    }
+
+    private fun isVitalSignsCategory(category: String?): Boolean {
+        if (category.isNullOrBlank()) return false
+        val normalized = category.lowercase()
+        return normalized == "vital-signs" || normalized == "vitalsigns" || normalized.contains("hjemmemåling")
     }
 
     private fun isMedicationCategory(category: String?): Boolean {
