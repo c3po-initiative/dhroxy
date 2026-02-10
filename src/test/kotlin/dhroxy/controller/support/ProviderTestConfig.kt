@@ -12,6 +12,9 @@ import dhroxy.service.VaccinationService
 import dhroxy.service.ConditionService
 import dhroxy.service.EncounterService
 import dhroxy.service.DocumentReferenceService
+import dhroxy.service.ReferralService
+import dhroxy.service.HomeMeasurementService
+import dhroxy.service.CarePlanService
 import io.mockk.mockk
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -31,4 +34,7 @@ class ProviderTestConfig {
     @Bean @Primary fun conditionService(): ConditionService = mockk()
     @Bean @Primary fun encounterService(): EncounterService = mockk()
     @Bean @Primary fun documentReferenceService(): DocumentReferenceService = mockk()
+    @Bean @Primary fun referralService(): ReferralService = mockk()
+    @Bean @Primary fun homeMeasurementService(): HomeMeasurementService = mockk()
+    @Bean @Primary fun carePlanService(): CarePlanService = mockk()
 }

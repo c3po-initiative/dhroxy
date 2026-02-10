@@ -14,6 +14,9 @@ import dhroxy.service.VaccinationService
 import dhroxy.service.ConditionService
 import dhroxy.service.EncounterService
 import dhroxy.service.DocumentReferenceService
+import dhroxy.service.ReferralService
+import dhroxy.service.HomeMeasurementService
+import dhroxy.service.CarePlanService
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.Resource
 import org.junit.jupiter.api.BeforeEach
@@ -46,6 +49,9 @@ abstract class BaseProviderIntegrationTest {
     @Autowired protected lateinit var conditionService: ConditionService
     @Autowired protected lateinit var encounterService: EncounterService
     @Autowired protected lateinit var documentReferenceService: DocumentReferenceService
+    @Autowired protected lateinit var referralService: ReferralService
+    @Autowired protected lateinit var homeMeasurementService: HomeMeasurementService
+    @Autowired protected lateinit var carePlanService: CarePlanService
 
     @BeforeEach
     fun baseSetup() {
