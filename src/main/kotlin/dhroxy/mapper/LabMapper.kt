@@ -72,7 +72,16 @@ class LabMapper {
 
     private fun mapObservation(result: Laboratorieresultat, rekvisition: Rekvisition?): Observation {
         val observation = Observation()
-        observation.id = "lab-${safeId(result.rekvisitionsId ?: result.proevenummerLaboratorie ?: UUID.randomUUID().toString())}"
+        // One Observation is emitted per result, but rekvisitionsId is
+        // requisition-level (a single requisition contains many results), so it is
+        // NOT unique per result. Keying the id on it alone makes every result in a
+        // requisition share an id and overwrite each other on id-based upsert.
+        // (rekvisitionsId, analysetypeId) is unique per result, so use the composite.
+        val resultKey = listOfNotNull(
+            result.rekvisitionsId ?: result.proevenummerLaboratorie,
+            result.analysetypeId,
+        ).joinToString("-").ifBlank { UUID.randomUUID().toString() }
+        observation.id = "lab-${safeId(resultKey)}"
         observation.identifier = buildList {
             result.rekvisitionsId?.let {
                 add(Identifier().setSystem("https://www.sundhed.dk/labsvar/rekvisition").setValue(it))
