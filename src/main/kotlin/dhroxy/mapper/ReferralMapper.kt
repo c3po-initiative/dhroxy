@@ -12,6 +12,7 @@ import org.hl7.fhir.r4.model.Period
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.ServiceRequest
 import org.springframework.stereotype.Component
+import java.security.MessageDigest
 import java.time.OffsetDateTime
 import java.util.Date
 import java.util.UUID
@@ -57,7 +58,15 @@ class ReferralMapper {
             entry.specialeNavn,
             entry.henvisendeKlinik
         ).joinToString("-").ifBlank { UUID.randomUUID().toString() }
-        sr.id = "ref-${safeId(idSource)}"
+        sr.id = fhirId("ref", idSource)
+        // Preserve the natural composite key as a business identifier. The id is length-
+        // capped (and hashed when it would overflow), so the identifier is the lossless,
+        // collision-free key consumers should upsert on.
+        sr.addIdentifier(
+            Identifier()
+                .setSystem("https://www.sundhed.dk/henvisning")
+                .setValue(idSource)
+        )
 
         sr.status = if (active) ServiceRequest.ServiceRequestStatus.ACTIVE
                     else ServiceRequest.ServiceRequestStatus.COMPLETED
@@ -143,9 +152,25 @@ class ReferralMapper {
             .trim()
     }
 
-    private fun safeId(raw: String): String =
-        raw.lowercase()
-            .replace("[^a-z0-9]+".toRegex(), "-")
-            .trim('-')
-            .take(64)
+    // FHIR R4 ids must be <=64 chars from [A-Za-z0-9.-]. Build "<prefix>-<slug>"; if that
+    // overflows, append a short hash of the *full* source so distinct referrals can't
+    // collapse to one id under truncation (cf. the non-unique Observation.id fix).
+    private fun fhirId(prefix: String, source: String): String {
+        val slug = source.lowercase().replace("[^a-z0-9]+".toRegex(), "-").trim('-')
+        val full = "$prefix-$slug"
+        if (full.length <= MAX_FHIR_ID_LEN) return full
+        val hash = sha256Hex(source).take(ID_HASH_LEN)
+        val keep = (MAX_FHIR_ID_LEN - prefix.length - 2 - ID_HASH_LEN).coerceAtLeast(0)
+        return "$prefix-${slug.take(keep).trim('-')}-$hash"
+    }
+
+    private fun sha256Hex(input: String): String =
+        MessageDigest.getInstance("SHA-256")
+            .digest(input.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
+
+    companion object {
+        private const val MAX_FHIR_ID_LEN = 64
+        private const val ID_HASH_LEN = 8
+    }
 }
