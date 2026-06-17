@@ -2,12 +2,14 @@ package dhroxy.mapper
 
 import dhroxy.model.MedicationCardEntry
 import dhroxy.model.OrdinationDetails
+import dhroxy.model.PrescriptionResponse
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Dosage
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.MedicationRequest
+import org.hl7.fhir.r4.model.Period
 import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 import java.util.Date
@@ -16,7 +18,12 @@ import java.util.UUID
 @Component
 class MedicationRequestMapper {
 
-    fun toMedicationRequestBundle(details: List<OrdinationDetails>, entries: List<MedicationCardEntry>, requestUrl: String): Bundle {
+    fun toMedicationRequestBundle(
+        details: List<OrdinationDetails>,
+        entries: List<MedicationCardEntry>,
+        requestUrl: String,
+        prescriptions: List<PrescriptionResponse> = emptyList()
+    ): Bundle {
         val entryById = entries.associateBy { it.ordinationId }
         val bundle = Bundle().apply {
             type = Bundle.BundleType.SEARCHSET
@@ -32,8 +39,56 @@ class MedicationRequestMapper {
                 this.resource = resource
             })
         }
+        // Prescriptions (the "Recepter" tab) are a distinct source from the medicine card
+        // ordinations above; both are surfaced as MedicationRequest orders.
+        prescriptions.forEach { prescription ->
+            val resource = mapPrescription(prescription)
+            bundle.addEntry(Bundle.BundleEntryComponent().apply {
+                fullUrl = "urn:uuid:${resource.idElement.idPart}"
+                this.resource = resource
+            })
+        }
         bundle.total = bundle.entry.size
         return bundle
+    }
+
+    private fun mapPrescription(prescription: PrescriptionResponse): MedicationRequest {
+        val request = MedicationRequest()
+        val prescriptionId = prescription.prescriptionId ?: UUID.randomUUID().toString()
+        request.id = "presc-$prescriptionId"
+        request.status = when (prescription.status?.lowercase()) {
+            "afsluttet" -> MedicationRequest.MedicationRequestStatus.COMPLETED
+            "aktiv", "åben", "open" -> MedicationRequest.MedicationRequestStatus.ACTIVE
+            else -> MedicationRequest.MedicationRequestStatus.UNKNOWN
+        }
+        request.intent = MedicationRequest.MedicationRequestIntent.ORDER
+        request.identifier = buildList {
+            prescription.prescriptionId?.let {
+                add(Identifier().setSystem("https://www.sundhed.dk/recept").setValue(it))
+            }
+            prescription.ordinationId?.let {
+                add(Identifier().setSystem("https://www.sundhed.dk/medicinkort/ordination").setValue(it))
+            }
+        }
+        request.medication = CodeableConcept().apply {
+            text = listOfNotNull(prescription.drug, prescription.strength, prescription.form)
+                .joinToString(", ")
+                .ifBlank { prescription.activeSubstance ?: "Prescription" }
+        }
+        request.authoredOn = parseDate(prescription.prescriptionDate ?: prescription.createdDate)
+        prescription.cause?.let { request.addNote().text = it }
+        prescription.dosage?.let { request.addDosageInstruction(Dosage().apply { text = it }) }
+        val validFrom = parseDate(prescription.validFromDate)
+        val validTo = parseDate(prescription.validToDate)
+        if (validFrom != null || validTo != null) {
+            request.dispenseRequest = MedicationRequest.MedicationRequestDispenseRequestComponent().apply {
+                validityPeriod = Period().apply {
+                    start = validFrom
+                    end = validTo
+                }
+            }
+        }
+        return request
     }
 
     private fun mapDetail(detail: OrdinationDetails, entry: MedicationCardEntry?): MedicationRequest {

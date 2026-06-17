@@ -168,6 +168,20 @@ class SundhedClient(
             .awaitSingleOrNull()
     }
 
+    suspend fun fetchPrescriptions(incomingHeaders: HttpHeaders): List<PrescriptionResponse> {
+        return webClient.get()
+            .uri("/app/medicinkort2borger/api/v1/prescriptions/")
+            .headers { copyForwardedHeaders(incomingHeaders, it) }
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { resp ->
+                log.warn("prescriptions request failed with status {}", resp.statusCode())
+                resp.bodyToMono<String>().defaultIfEmpty("")
+                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
+            }
+            .bodyToMono<List<PrescriptionResponse>>()
+            .awaitSingleOrNull() ?: emptyList()
+    }
+
     suspend fun fetchAppointments(
         incomingHeaders: HttpHeaders,
         fra: String? = null,
