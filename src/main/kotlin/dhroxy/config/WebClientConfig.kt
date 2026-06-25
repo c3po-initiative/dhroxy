@@ -27,6 +27,10 @@ class WebClientConfig(private val props: SundhedClientProperties) {
         return builder
             .baseUrl(props.baseUrl)
             .clientConnector(ReactorClientHttpConnector(httpClient))
+            // Spring's default in-memory buffer is 256 KB; a full lab history
+            // (hundreds of results, >300 KB) exceeds it and the request 500s with
+            // DataBufferLimitException. Raise the cap so wide date ranges work.
+            .codecs { it.defaultCodecs().maxInMemorySize(16 * 1024 * 1024) }
             .build()
     }
 }
