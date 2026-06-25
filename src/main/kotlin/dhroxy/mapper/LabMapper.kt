@@ -72,11 +72,10 @@ class LabMapper {
 
     private fun mapObservation(result: Laboratorieresultat, rekvisition: Rekvisition?): Observation {
         val observation = Observation()
-        // One Observation is emitted per result, but rekvisitionsId is
-        // requisition-level (a single requisition contains many results), so it is
-        // NOT unique per result. Keying the id on it alone makes every result in a
-        // requisition share an id and overwrite each other on id-based upsert.
-        // (rekvisitionsId, analysetypeId) is unique per result, so use the composite.
+        // rekvisitionsId is requisition-level (many results share one), so it is not
+        // unique per result; keying the id on it alone would let results in the same
+        // requisition overwrite each other on upsert. (rekvisitionsId, analysetypeId)
+        // is unique per result, so use the composite.
         val resultKey = listOfNotNull(
             result.rekvisitionsId ?: result.proevenummerLaboratorie,
             result.analysetypeId,

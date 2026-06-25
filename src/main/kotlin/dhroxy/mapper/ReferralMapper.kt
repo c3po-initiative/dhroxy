@@ -59,9 +59,8 @@ class ReferralMapper {
             entry.henvisendeKlinik
         ).joinToString("-").ifBlank { UUID.randomUUID().toString() }
         sr.id = fhirId("ref", idSource)
-        // Preserve the natural composite key as a business identifier. The id is length-
-        // capped (and hashed when it would overflow), so the identifier is the lossless,
-        // collision-free key consumers should upsert on.
+        // The id is length-capped (and hashed on overflow), so expose the full composite
+        // key as a lossless business identifier for consumers to upsert on.
         sr.addIdentifier(
             Identifier()
                 .setSystem("https://www.sundhed.dk/henvisning")
