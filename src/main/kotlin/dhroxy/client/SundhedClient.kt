@@ -244,12 +244,17 @@ class SundhedClient(
             .uri("/api/minlaegeorganization/")
             .headers { copyForwardedHeaders(incomingHeaders, it) }
             .retrieve()
-            .onStatus(HttpStatusCode::isError) { resp ->
-                log.warn("minlaegeorganization request failed with status {}", resp.statusCode())
-                resp.bodyToMono<String>().defaultIfEmpty("")
-                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
-            }
             .bodyToMono<MinLaegeOrganizationResponse>()
+            .onErrorResume { e ->
+                // Optional enrichment lookup — must not be fatal. sundhed.dk currently
+                // 404s this endpoint for some accounts, and its error page comes back as
+                // text/plain, so both the 404 itself and the resulting decode failure
+                // previously propagated and turned the whole MedicationStatement/
+                // MedicationRequest/Organization/PatientSummary request into a 500.
+                // Swallow any failure here and let callers proceed without the id.
+                log.warn("minlaegeorganization lookup unavailable; treating as absent: {}", e.message)
+                Mono.empty()
+            }
             .awaitSingleOrNull()
             ?.organizationId
     }
@@ -275,7 +280,11 @@ class SundhedClient(
         eservicesId: String,
         incomingHeaders: HttpHeaders
     ): List<MedicationCardEntry> {
-        if (eservicesId.isBlank()) return emptyList()
+        // Note: eservicesId is retained for the sourceId/eservices override plumbing,
+        // but the medicine-card endpoint below is session-scoped (resolves the patient
+        // from the forwarded cookie) and does not use the id. It is therefore NOT a
+        // reason to suppress results — previously a blank id (e.g. when the optional
+        // min-læge-organisation lookup was unavailable) returned an empty card.
         return webClient.get()
             .uri { builder ->
                 builder
