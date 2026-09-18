@@ -217,3 +217,32 @@ The service exposes a minimal MCP toolset (enabled when `spring.ai.mcp.server.en
 - `create-fhir-transaction`: POST a Bundle of type `transaction` (read/search-only enforced).
 
 Transport: HTTP Servlet endpoint from Spring AI MCP starter (`/mcp` by default). JSON mapper is Jackson (MCP SDK 0.13.1). The MCP bridge dispatches requests into the embedded HAPI server and returns the FHIR JSON payload and HTTP status inside MCP `CallToolResult`.
+
+## EU Health Data API compatibility
+
+dhroxy now supports the two main discovery hooks expected by the EU Health Data API resource-access flow:
+
+- `/fhir/metadata` can advertise additional `CapabilityStatement.instantiates` and `CapabilityStatement.implementationGuide` canonicals.
+- `/fhir/.well-known/smart-configuration` can be enabled to publish SMART Backend Services discovery metadata.
+
+This is intentionally deployment-oriented. dhroxy still does **not** validate OAuth tokens by itself, so only enable SMART discovery when dhroxy is deployed behind an authorization/resource-server layer that actually enforces those requirements.
+
+Example configuration:
+
+```yaml
+eu-health-data-api:
+  capability-statement:
+    instantiates:
+      - "http://hl7.org/fhir/uv/ipa/CapabilityStatement/ipa-server"
+      - "http://hl7.eu/fhir/health-data-api/CapabilityStatement/resource-access-provider-eu-api"
+    implementation-guides:
+      - "http://hl7.eu/fhir/eps"
+      - "http://hl7.eu/fhir/laboratory"
+  smart-configuration:
+    enabled: true
+    token-endpoint: "https://auth.example.org/token"
+    jwks-uri: "https://auth.example.org/jwks.json"
+    scopes-supported:
+      - "system/Patient.rs"
+      - "system/Observation.rs"
+```

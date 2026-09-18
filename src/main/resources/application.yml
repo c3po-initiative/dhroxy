@@ -25,3 +25,17 @@ logging:
   level:
     dhroxy: DEBUG
     org.springframework.web: DEBUG
+
+eu-health-data-api:
+  # Additional canonicals can be appended to /fhir/metadata for EU Health Data API discovery.
+  # capability-statement:
+  #   implementation-guides:
+  #     - "http://hl7.eu/fhir/eps"
+  #     - "http://hl7.eu/fhir/laboratory"
+  smart-configuration:
+    enabled: false
+    # token-endpoint: "https://auth.example.org/token"
+    # jwks-uri: "https://auth.example.org/jwks.json"
+    # scopes-supported:
+    #   - "system/Patient.rs"
+    #   - "system/Observation.rs"
