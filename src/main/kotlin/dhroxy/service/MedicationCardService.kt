@@ -19,13 +19,16 @@ class MedicationCardService(
             val details = client.fetchOrdinationDetails(identifier, headers)
             return mapper.fromDetails(details, requestUrl)
         }
+        // The medicine card is session-scoped, so it does not require a resolved
+        // eservices/org id. We still honour an explicit sourceId/eservices override
+        // when present, but a missing one (e.g. the optional min-læge-organisation
+        // lookup being unavailable) must not turn the medicine card into an empty
+        // result — previously this returned an empty bundle and, before that,
+        // 500'd when the lookup threw.
         val eservicesId = sourceId
             ?: props.medicationCardEservicesId
             ?: client.fetchMinLaegeOrganizationId(headers)?.toString()
-        if (eservicesId.isNullOrBlank()) {
-            return emptyBundle(requestUrl)
-        }
-        val entries = client.fetchMedicationCard(eservicesId, headers)
+        val entries = client.fetchMedicationCard(eservicesId.orEmpty(), headers)
         val filtered = filterByStatus(entries, status)
         return mapper.toMedicationStatementBundle(filtered, requestUrl)
     }
@@ -41,14 +44,5 @@ class MedicationCardService(
                 else -> true
             }
         }
-    }
-
-    private fun emptyBundle(requestUrl: String): Bundle = Bundle().apply {
-        type = Bundle.BundleType.SEARCHSET
-        link = listOf(Bundle.BundleLinkComponent().apply {
-            relation = "self"
-            url = requestUrl
-        })
-        total = 0
     }
 }
