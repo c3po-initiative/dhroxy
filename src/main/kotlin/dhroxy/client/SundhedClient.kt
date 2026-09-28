@@ -41,10 +41,14 @@ class SundhedClient(
 
         return webClient.get()
             .uri { builder ->
-                builder.path("/api/labsvar/svaroversigt")
+                // The legacy /api/labsvar/svaroversigt path now 404s; sundhed.dk
+                // serves lab results from the prøvesvarportal API, which also
+                // requires a source (RegionaleProevesvar for regional lab results).
+                builder.path("/app/proevesvarportal/api/v1/svaroversigt")
                     .apply {
                         queryParam("fra", effectiveFra)
                         queryParam("til", effectiveTil)
+                        queryParam("source", "RegionaleProevesvar")
                         if (!omraade.isNullOrBlank()) queryParam("omraade", omraade)
                     }
                     .build()
@@ -162,6 +166,20 @@ class SundhedClient(
             }
             .bodyToMono<PrescriptionOverviewResponse>()
             .awaitSingleOrNull()
+    }
+
+    suspend fun fetchPrescriptions(incomingHeaders: HttpHeaders): List<PrescriptionResponse> {
+        return webClient.get()
+            .uri("/app/medicinkort2borger/api/v1/prescriptions/")
+            .headers { copyForwardedHeaders(incomingHeaders, it) }
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { resp ->
+                log.warn("prescriptions request failed with status {}", resp.statusCode())
+                resp.bodyToMono<String>().defaultIfEmpty("")
+                    .map { body -> ResponseStatusException(resp.statusCode(), body) }
+            }
+            .bodyToMono<List<PrescriptionResponse>>()
+            .awaitSingleOrNull() ?: emptyList()
     }
 
     suspend fun fetchAppointments(
