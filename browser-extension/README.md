@@ -48,6 +48,21 @@ Other FHIR servers (e.g. THP) and how many years of lab results to fetch are set
 - The extension can only talk to sundhed.dk and localhost. Other FHIR servers require you to grant access to that specific address.
 - The bearer token for the FHIR server is stored in plain text in `chrome.storage.local`. Use short-lived tokens.
 
+### Threat model: what this does and doesn't change
+
+**It does not weaken sundhed.dk's security.**
+
+- It gets no more access than you already have: only the data you can see yourself when logged in. It doesn't bypass MitID, can't read other people's data and can't change anything on sundhed.dk (all calls are reads; the one POST is the appointment search).
+- It uses your session the way the browser already does, inside your own sundhed.dk tab. Nothing is copied out of it.
+- CSRF protection guards against *other websites* making requests in your name. An extension you installed yourself, with explicit permission for sundhed.dk, is outside that threat model by design.
+- Compared with running dhroxy as a server, where the session cookies are copied into another program, this is a smaller attack surface.
+
+**It does move risk, and you take it on.**
+
+1. **The extension is a high-value target.** It can read everything you can see on sundhed.dk. This copy only sends data where you tell it to, but a modified copy could quietly send it elsewhere. Install it only from source you have read, load it unpacked, and don't install builds or forks from others. This extension should not be published in the Chrome Web Store or distributed as a ready-made package.
+2. **Your data leaves a governed system.** On sundhed.dk your data has access control, audit logging and an operator responsible for it. In your own FHIR server, that protection is yours to provide. The included HAPI has no login and is bound to `127.0.0.1` for that reason; never expose it to a network without authentication, and delete it after testing (`docker compose down`).
+3. **It is not an official integration.** It automates sundhed.dk's internal APIs, as dhroxy does. That is a terms-of-use and stability question rather than a technical break-in, but it is the user's responsibility. Production use should go through official national integrations instead.
+
 ## Limitations
 
 - Relies on sundhed.dk's internal APIs, like dhroxy. They can change without notice, and this use is not officially supported. Check sundhed.dk's terms.
