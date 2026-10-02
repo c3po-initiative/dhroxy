@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Sundhed.dk → FHIR bridge",
+  "version": "0.2.0",
+  "description": "Henter dine egne data fra sundhed.dk, oversætter dem til FHIR i browseren og lægger dem på en FHIR-server efter din godkendelse.",
+  "permissions": ["webRequest", "scripting", "storage"],
+  "host_permissions": [
+    "https://www.sundhed.dk/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*"
+  ],
+  "optional_host_permissions": ["https://*/*", "http://*/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_title": "Sundhed.dk → FHIR", "default_popup": "popup.html" },
+  "options_page": "options.html"
+}

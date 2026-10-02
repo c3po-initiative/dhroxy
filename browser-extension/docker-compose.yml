@@ -1,0 +1,7 @@
+# Local HAPI FHIR server on :8090, reachable only from this machine.
+# The extension no longer needs dhroxy; it does the sundhed.dk → FHIR mapping itself.
+services:
+  hapi:
+    image: hapiproject/hapi:latest
+    ports:
+      - "127.0.0.1:8090:8080"
