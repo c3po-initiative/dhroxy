@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <title>Indstillinger – Sundhed.dk → FHIR</title>
+  <style>
+    body { font: 14px/1.5 system-ui, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 16px; color: #1d2733; }
+    label { display: block; margin-top: 14px; font-weight: 600; }
+    input { width: 100%; box-sizing: border-box; padding: 7px; border: 1px solid #c8ced6; border-radius: 6px; font: inherit; }
+    .hint { color: #667085; font-size: 12px; font-weight: 400; }
+    button { margin-top: 18px; padding: 8px 16px; border: 0; border-radius: 6px; background: #2457c5; color: #fff; font-weight: 600; cursor: pointer; }
+    #msg { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Indstillinger</h1>
+  <label>FHIR-server (HAPI) URL
+    <input id="fhirUrl" placeholder="http://localhost:8090/fhir">
+    <span class="hint">Hvor dine data skal lægges. Ikke-lokale adresser kræver, at du giver adgang, når du gemmer.</span>
+  </label>
+  <label>Bearer token til FHIR-serveren (valgfrit)
+    <input id="fhirToken" type="password" autocomplete="off">
+    <span class="hint">Fx et patient-token fra Keycloak/THP. Gemmes lokalt i browseren.</span>
+  </label>
+  <label>Labsvar: antal år tilbage
+    <input id="labYears" type="number" min="1" max="20" placeholder="2">
+    <span class="hint">Hvor langt tilbage labsvar hentes. Flere år betyder flere data og længere hentetid.</span>
+  </label>
+  <button id="save">Gem</button><span id="msg"></span>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8">
+  <style>
+    body { font: 13px/1.4 system-ui, sans-serif; width: 330px; margin: 12px; color: #1d2733; }
+    h1 { font-size: 15px; margin: 0 0 10px; }
+    .box { background: #f3f5f8; border-radius: 6px; padding: 8px 10px; margin-bottom: 10px; }
+    .ok { color: #1a7f37; } .bad { color: #b42318; } .muted { color: #667085; font-size: 12px; }
+    button { width: 100%; padding: 8px; margin-bottom: 6px; border: 0; border-radius: 6px; background: #2457c5; color: #fff; font-weight: 600; cursor: pointer; }
+    button.secondary { background: #e4e7ec; color: #1d2733; }
+    button:disabled { opacity: .45; cursor: default; }
+    table { width: 100%; border-collapse: collapse; } td { padding: 1px 0; } td:last-child { text-align: right; }
+    a { color: #2457c5; }
+  </style>
+</head>
+<body>
+  <h1>Sundhed.dk → FHIR</h1>
+  <div class="box" id="session"></div>
+  <button id="fetch">1. Hent mine data fra sundhed.dk</button>
+  <div class="box" id="preview" hidden></div>
+  <button id="upload" disabled>2. Send til FHIR-server</button>
+  <div class="box" id="result" hidden></div>
+  <button id="forget" class="secondary">Glem session og data</button>
+  <p class="muted">FHIR-server: <span id="fhir"></span> · <a href="#" id="opts">Indstillinger</a></p>
+  <script src="popup.js"></script>
+</body>
+</html>
