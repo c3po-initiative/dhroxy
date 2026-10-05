@@ -1,0 +1,469 @@
+{
+  "person": {
+    "tabId": "synthetic-session",
+    "personDelegationData": [
+      {
+        "id": "test-person",
+        "cpr": "0101900000",
+        "name": "Testperson Eksempel",
+        "relationType": "MigSelv",
+        "validAppIDs": [
+          1,
+          2
+        ]
+      }
+    ]
+  },
+  "labs": {
+    "Svaroversigt": {
+      "Laboratorieresultater": [
+        {
+          "AnalysetypeId": "KliniskBiokemi",
+          "ProevenummerLaboratorie": "sample-1",
+          "RekvisitionsId": "req-1",
+          "ResultatStatus": "KompletSvar",
+          "ResultatStatuskode": "SvarEndeligt",
+          "Resultatdato": "2026-06-15T10:00:00+02:00",
+          "Vaerditype": "Tal",
+          "Undersoegelser": [
+            {
+              "AnalyseKode": "DNK35312",
+              "UndersoegelsesNavn": "CRP",
+              "Producent": "Testlaboratorium",
+              "QuantitativeFindings": {
+                "Data": [
+                  [
+                    null,
+                    "Code",
+                    "CodeType",
+                    "CodeResponsible",
+                    "Text",
+                    "InterPretation_Code",
+                    "InterPretation_CodeType",
+                    "InterPretation_CodeResponseble",
+                    "InterPretation_Text",
+                    "Value",
+                    "Unit",
+                    "Ref. Område",
+                    "Kommentar",
+                    null
+                  ],
+                  [
+                    "Finding: 0",
+                    "DNK35312",
+                    "0",
+                    "TEST",
+                    "CRP",
+                    null,
+                    "0",
+                    null,
+                    "_",
+                    "5.2",
+                    "mg/L",
+                    "",
+                    "",
+                    null
+                  ]
+                ],
+                "NoColumns": 2,
+                "NoRows": 14
+              }
+            }
+          ]
+        },
+        {
+          "AnalysetypeId": "Patologi",
+          "ProevenummerLaboratorie": "sample-2",
+          "RekvisitionsId": "req-2",
+          "ResultatStatus": "KompletSvar",
+          "ResultatStatuskode": "SvarEndeligt",
+          "Resultatdato": "2026-06-15T10:00:00+02:00",
+          "Vaerditype": "Tekst",
+          "Vaerdi": "PATO",
+          "Materiale_html": "[1]: Syntetisk vævsprøve<br/>",
+          "Konklusion_html": "Syntetisk svar med æ, ø og å.<br/>Ingen klinisk betydning.",
+          "Undersoegelser": []
+        }
+      ],
+      "Rekvisitioner": [
+        {
+          "Id": "req-1",
+          "LaboratorieProevenummer": "sample-1",
+          "PatientCpr": "0101900000",
+          "PatientNavn": "Testperson Eksempel",
+          "Laboratorieomraade": "KliniskBiokemi",
+          "Proevetagningstidspunkt": "2026-06-15T10:00:00+02:00",
+          "Svartidspunkt": "2026-06-15T10:00:00+02:00",
+          "RekvirentsOrganisation": "Testklinik"
+        },
+        {
+          "Id": "req-2",
+          "LaboratorieProevenummer": "sample-2",
+          "PatientCpr": "0101900000",
+          "PatientNavn": "Testperson Eksempel",
+          "Laboratorieomraade": "Patologi",
+          "Proevetagningstidspunkt": "2026-06-15T10:00:00+02:00",
+          "Svartidspunkt": "2026-06-15T10:00:00+02:00",
+          "RekvirentsOrganisation": "Testklinik"
+        }
+      ]
+    }
+  },
+  "vaccinations": [
+    {
+      "ActiveStatus": true,
+      "VaccinationIdentifier": 1001,
+      "Vaccine": "Testvaccine",
+      "EffectuatedBy": "Testklinik",
+      "EffectuatedDateTime": "2026-06-15T10:00:00+02:00",
+      "NegativeConsent": false,
+      "SelfCreated": false
+    }
+  ],
+  "vaccinationHistory": [
+    {
+      "Id": 1001,
+      "Date": "2026-06-15T10:00:00+02:00"
+    }
+  ],
+  "ordinations": [
+    {
+      "OrdinationId": "ord-1",
+      "DrugMedication": "Paracetamol",
+      "ActiveSubstance": "Paracetamol",
+      "Strength": "500 mg",
+      "Form": "tablet",
+      "Dosage": "Syntetisk dosering",
+      "Cause": "Testindikation",
+      "StartDate": "2026-06-15T10:00:00+02:00",
+      "Status": {
+        "EnumStr": "Active",
+        "From": "2026-06-15T10:00:00+02:00"
+      },
+      "HasNegativeConsent": false
+    }
+  ],
+  "ordinationOverview": {
+    "NumberOfActive": 1,
+    "NumberOfNonStopped": 1,
+    "NumberOfStopped": 0,
+    "NumberOfTemporarilyStopped": 0,
+    "NumberOfDosagePeriodExceeded": 0,
+    "NumberOfFutureDosageStart": 0,
+    "HasDrugMedicationWithNegativeConsent": false
+  },
+  "ordinationDetails": {
+    "DrugMedication": {
+      "DrugMedication": "Paracetamol",
+      "Form": "tablet",
+      "Strength": "500 mg",
+      "ActiveSubstance": "Paracetamol",
+      "AtcCode": "N02BE01",
+      "AtcText": "Paracetamol",
+      "DrugMedicationIdentifier": "drug-1",
+      "OrdinationIdentifier": "ord-1"
+    },
+    "Treatment": {
+      "Cause": "Testindikation",
+      "StartDate": "2026-06-15T10:00:00+02:00",
+      "Administration": "Oral"
+    },
+    "Dosage": {
+      "Text": "Syntetisk dosering",
+      "StartDate": "2026-06-15T10:00:00+02:00"
+    },
+    "CreatedBy": {
+      "Date": "2026-06-15T10:00:00+02:00",
+      "Name": "Testlæge",
+      "OrganisationName": "Testklinik"
+    }
+  },
+  "prescriptions": [
+    {
+      "PrescriptionId": "rx-1",
+      "OrdinationId": "ord-1",
+      "Status": "aktiv",
+      "Drug": "Paracetamol",
+      "Strength": "500 mg",
+      "Form": "tablet",
+      "Dosage": "Syntetisk dosering",
+      "PrescriptionDate": "2026-06-15T10:00:00+02:00",
+      "ValidFromDate": "2026-06-15T10:00:00+02:00",
+      "ValidToDate": "2027-06-15T10:00:00+02:00"
+    },
+    {
+      "PrescriptionId": "rx-2",
+      "Status": "afsluttet",
+      "Drug": "Paracetamol",
+      "PrescriptionDate": "2025-06-15T10:00:00+02:00"
+    }
+  ],
+  "prescriptionOverview": {
+    "NumClosed": 1,
+    "NumDispensings": 0,
+    "NumFuture": 0,
+    "NumOpen": 1,
+    "NumTotal": 2,
+    "NumUnconnected": 1
+  },
+  "appointments": {
+    "appointments": [
+      {
+        "documentId": "appt-1",
+        "title": "Testkontrol",
+        "appointmentType": "Ambulant",
+        "startTime": "2026-06-15T10:00:00+02:00",
+        "endTime": "2026-06-15T10:30:00+02:00",
+        "patient": {
+          "givenName": "Testperson",
+          "familyName": "Eksempel",
+          "personIdentifier": "0101900000"
+        },
+        "location": {
+          "organisation": "Testhospital",
+          "ward": "Testafdeling",
+          "address": {
+            "street": "Testvej 1",
+            "postalCode": "0000",
+            "city": "Testby",
+            "country": "DK"
+          }
+        },
+        "performer": {
+          "organisation": "Testklinik"
+        }
+      }
+    ],
+    "canOverrideConsent": false,
+    "consentFilterApplied": false
+  },
+  "gp": {
+    "OrganizationId": 12345
+  },
+  "organization": {
+    "Organizations": [
+      {
+        "OrganizationId": 12345,
+        "Name": "Testklinik",
+        "DisplayName": "Testklinik",
+        "Street": "Testvej",
+        "HouseNumberFrom": "1",
+        "ZipCode": 1000,
+        "City": "Testby",
+        "Homepage": "https://example.invalid",
+        "LastUpdated": "2026-06-15T10:00:00+02:00"
+      }
+    ]
+  },
+  "diagnoses": {
+    "isLiveData": false,
+    "hasConsentData": true,
+    "diagnoser": [
+      {
+        "diagnoseKode": "J45",
+        "diagnoseNavn": "Astma (syntetisk)",
+        "type": "Aktionsdiagnose",
+        "datoFra": "2026-06-15T10:00:00+02:00"
+      }
+    ]
+  },
+  "courses": {
+    "numberOfForloeb": 1,
+    "harSpaerretForloeb": false,
+    "personNummer": "0101900000",
+    "navn": "Testperson Eksempel",
+    "forloeb": [
+      {
+        "identifikation": "course-1",
+        "idNoegle": {
+          "database": null,
+          "noegle": "course-1",
+          "vaerdispringNoegle": null
+        },
+        "diagnoseKode": "J45",
+        "diagnoseNavn": "Astma (syntetisk)",
+        "datoFra": "2026-06-15T10:00:00+02:00",
+        "datoOpdateret": "2026-06-15T10:00:00+02:00",
+        "sygehusNavn": "Testhospital",
+        "afdelingNavn": "Testafdeling",
+        "antalEpikriser": 1,
+        "antalNotater": 1,
+        "antalDiagnoser": 1,
+        "antalKontaktperioder": 1
+      }
+    ]
+  },
+  "contacts": {
+    "kontaktperioder": [
+      {
+        "noegle": "contact-1",
+        "datoFra": "2026-06-15T10:00:00+02:00",
+        "datoTil": "2026-06-15T11:00:00+02:00",
+        "status": "Afsluttet",
+        "enhedsInformation": {
+          "institution": "Testhospital",
+          "afdeling": "Testafdeling",
+          "kode": "test-unit"
+        },
+        "fritekst": "Syntetisk kontakt"
+      }
+    ]
+  },
+  "discharge": {
+    "header": {
+      "datoFra": "2026-06-15T10:00:00+02:00"
+    },
+    "epikriser": [
+      {
+        "notatType": "Epikrise",
+        "datoFra": "2026-06-15T10:00:00+02:00",
+        "enhedsInformation": {
+          "institution": "Testhospital",
+          "afdeling": "Testafdeling",
+          "kode": "test-unit"
+        },
+        "overskrift": "Testepikrise",
+        "broedtekst": "<p>Syntetisk epikrise med æøå.</p>"
+      }
+    ]
+  },
+  "notes": {
+    "header": {
+      "datoFra": "2026-06-15T10:00:00+02:00"
+    },
+    "notater": [
+      {
+        "notatType": "Notat",
+        "datoFra": "2026-06-15T10:00:00+02:00",
+        "enhedsInformation": {
+          "institution": "Testhospital",
+          "afdeling": "Testafdeling",
+          "kode": "test-unit"
+        },
+        "overskrift": "Testnotat",
+        "broedtekst": "<p>Syntetisk journalnotat.</p>",
+        "behandlerNavn": "Testlæge"
+      }
+    ]
+  },
+  "imagingList": {
+    "MinDate": "2026-06-15T10:00:00+02:00",
+    "Svar": [
+      {
+        "Id": "report-1",
+        "HenvisningsId": "ref-1",
+        "Dato": "2026-06-15T10:00:00+02:00",
+        "UdgivelsesDato": "2026-06-15T10:00:00+02:00",
+        "Navn": "Røntgen thorax (test)",
+        "Type": "Røntgen",
+        "Beskrivelse": "<p>Syntetisk billedbeskrivelse.</p>",
+        "Laege": "Testlæge",
+        "Producent": {
+          "Navn": "Testhospital",
+          "Enhed": "Radiologi"
+        },
+        "Undersoegelser": [
+          {
+            "Id": "study-1",
+            "BilledId": "image-1",
+            "Dato": "2026-06-15T10:00:00+02:00",
+            "Navn": "Thorax",
+            "Type": "DX"
+          }
+        ]
+      }
+    ]
+  },
+  "imagingDetail": {
+    "Id": "ref-1",
+    "Producent": {
+      "Navn": "Testhospital",
+      "Enhed": "Radiologi"
+    },
+    "Rekvirent": {
+      "Fornavn": "Test",
+      "Efternavn": "Læge",
+      "Enhed": "Testklinik"
+    },
+    "Svar": [
+      {
+        "Id": "report-1",
+        "HenvisningsId": "ref-1",
+        "Dato": "2026-06-15T10:00:00+02:00",
+        "UdgivelsesDato": "2026-06-15T10:00:00+02:00",
+        "Navn": "Røntgen thorax (test)",
+        "Type": "Røntgen",
+        "Beskrivelse": "<p>Syntetisk billedbeskrivelse.</p>",
+        "Laege": "Testlæge",
+        "Producent": {
+          "Navn": "Testhospital",
+          "Enhed": "Radiologi"
+        },
+        "Undersoegelser": [
+          {
+            "Id": "study-1",
+            "BilledId": "image-1",
+            "Dato": "2026-06-15T10:00:00+02:00",
+            "Navn": "Thorax",
+            "Type": "DX"
+          }
+        ]
+      }
+    ]
+  },
+  "referrals": {
+    "aktiveHenvisninger": [
+      {
+        "henvisningsDato": "2026-06-15T10:00:00+02:00",
+        "udloebsDato": "2027-06-15T10:00:00+02:00",
+        "henvisendeKlinik": "Testklinik",
+        "specialeNavn": "Radiologi",
+        "detaljer": {
+          "henvisningsType": "Testhenvisning",
+          "henvisningsKode": "test-referral",
+          "modtager": {
+            "name": "Testhospital"
+          },
+          "diagnoser": [
+            {
+              "diagnoseType": "Aktionsdiagnose",
+              "diagnoseText": "Syntetisk diagnose"
+            }
+          ]
+        }
+      }
+    ],
+    "tidligereHenvisninger": []
+  },
+  "measurements": {
+    "documents": [
+      {
+        "type": "weight",
+        "name": "Vægt (test)",
+        "date": "2026-06-15T10:00:00+02:00",
+        "value": "70",
+        "unit": "kg",
+        "source": "Syntetisk måler"
+      }
+    ],
+    "groupings": [
+      {
+        "name": "Vægt"
+      }
+    ],
+    "hasErrors": false
+  },
+  "plans": {
+    "plans": [
+      {
+        "title": "Testplan",
+        "status": "active",
+        "startDate": "2026-06-15T10:00:00+02:00",
+        "organization": "Testklinik",
+        "description": "Syntetisk opfølgningsplan."
+      }
+    ],
+    "isLiveData": false,
+    "hasConsentData": true
+  }
+}

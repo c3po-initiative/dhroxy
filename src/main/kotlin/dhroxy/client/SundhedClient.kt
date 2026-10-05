@@ -1,6 +1,7 @@
 package dhroxy.client
 
 import dhroxy.model.*
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
@@ -18,6 +19,7 @@ class SundhedClient(
     props: dhroxy.config.SundhedClientProperties
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val jsonMapper = jacksonObjectMapper()
     private val forwardedHeaderNames = props.forwardedHeaders.map { it.lowercase() }.toSet()
     private val fallbackHeaderNames = props.fallbackHeaders.mapKeys { it.key.lowercase() }
 
@@ -386,12 +388,12 @@ class SundhedClient(
         noegle: String,
         incomingHeaders: HttpHeaders
     ): KontaktperioderResponse? {
-        val keyJson = """{"Database":null,"Noegle":"$noegle","VaerdispringNoegle":null}"""
+        val keyJson = journalKey(noegle)
         return webClient.get()
             .uri { builder ->
                 builder.path("/app/ejournalportalborger/api/ejournal/kontaktperioder")
-                    .queryParam("noegle", keyJson)
-                    .build()
+                    .queryParam("noegle", "{noegle}")
+                    .build(keyJson)
             }
             .headers { copyForwardedHeaders(incomingHeaders, it) }
             .retrieve()
@@ -408,12 +410,12 @@ class SundhedClient(
         noegle: String,
         incomingHeaders: HttpHeaders
     ): EpikriserResponse? {
-        val keyJson = """{"Database":null,"Noegle":"$noegle","VaerdispringNoegle":null}"""
+        val keyJson = journalKey(noegle)
         return webClient.get()
             .uri { builder ->
                 builder.path("/app/ejournalportalborger/api/ejournal/epikriser")
-                    .queryParam("noegle", keyJson)
-                    .build()
+                    .queryParam("noegle", "{noegle}")
+                    .build(keyJson)
             }
             .headers { copyForwardedHeaders(incomingHeaders, it) }
             .retrieve()
@@ -430,12 +432,12 @@ class SundhedClient(
         noegle: String,
         incomingHeaders: HttpHeaders
     ): NotaterResponse? {
-        val keyJson = """{"Database":null,"Noegle":"$noegle","VaerdispringNoegle":null}"""
+        val keyJson = journalKey(noegle)
         return webClient.get()
             .uri { builder ->
                 builder.path("/app/ejournalportalborger/api/ejournal/notater")
-                    .queryParam("noegle", keyJson)
-                    .build()
+                    .queryParam("noegle", "{noegle}")
+                    .build(keyJson)
             }
             .headers { copyForwardedHeaders(incomingHeaders, it) }
             .retrieve()
@@ -537,6 +539,12 @@ class SundhedClient(
             .bodyToMono<CarePlansResponse>()
             .awaitSingleOrNull()
     }
+
+    // Expand JSON as a URI variable so its braces are not parsed as a template,
+    // and serialize the key so quotes and backslashes are escaped correctly.
+    private fun journalKey(noegle: String): String = jsonMapper.writeValueAsString(
+        mapOf("Database" to null, "Noegle" to noegle, "VaerdispringNoegle" to null)
+    )
 
     private fun copyForwardedHeaders(incoming: HttpHeaders, outgoing: HttpHeaders) {
         forwardedHeaderNames.forEach { name ->

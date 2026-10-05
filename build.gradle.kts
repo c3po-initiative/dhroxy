@@ -74,3 +74,12 @@ tasks.withType<KotlinCompile>().configureEach {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+// Test-only upstream; never packaged in the production application.
+tasks.register<JavaExec>("sundhedStub") {
+    group = "application"
+    description = "Run the synthetic sundhed.dk API on localhost:9090 (--args='--help' for options)"
+    dependsOn(tasks.testClasses)
+    classpath = sourceSets.test.get().runtimeClasspath
+    mainClass.set("dhroxy.stub.SundhedStubKt")
+}

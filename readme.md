@@ -2,6 +2,13 @@
 
 This service exposes a read-only FHIR API that maps sundhed.dk endpoints into FHIR resources. The server runs at `/fhir`.
 
+## Local testing without sundhed.dk
+
+Run `./gradlew sundhedStub`, then start the proxy with
+`SUNDHED_CLIENT_BASE_URL=http://127.0.0.1:9090 ./gradlew bootRun`.
+The stub serves synthetic data for all upstream client endpoints, with empty-data,
+auth-error, GP-404 and large-lab scenarios. See [stub usage and contracts](docs/sundhed-stub.md).
+
 ## Supported resources and source endpoints
 - Patient → personvælger (/app/personvaelgerportal/api/v1/GetPersonSelection)
 - Observation (labs) → labsvar (/api/labsvar/svaroversigt)
