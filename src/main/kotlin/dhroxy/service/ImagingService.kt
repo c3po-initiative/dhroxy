@@ -37,12 +37,7 @@ class ImagingService(
                 )
             }
         }
-        val merged = if (responses.isEmpty()) null else {
-            dhroxy.model.ImagingReferralResponse(
-                svar = responses.flatMap { it.svar }
-            )
-        }
-        return mapper.toDiagnosticReportBundle(merged, requestUrl)
+        return mapper.toDiagnosticReportBundle(responses, requestUrl)
     }
 
     suspend fun imagingStudies(
@@ -74,11 +69,6 @@ class ImagingService(
                 )
             }
         }
-        val merged = if (responses.isEmpty()) null else {
-            dhroxy.model.ImagingReferralResponse(
-                svar = responses.flatMap { it.svar }
-            )
-        }
-        return mapper.toImagingStudyBundle(merged, requestUrl)
+        return mapper.toImagingStudyBundle(responses, requestUrl)
     }
 }

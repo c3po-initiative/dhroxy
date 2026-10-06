@@ -9,6 +9,7 @@ import org.hl7.fhir.r4.model.Dosage
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.MedicationStatement
 import org.hl7.fhir.r4.model.Period
+import org.hl7.fhir.r4.model.Reference
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -34,6 +35,7 @@ class MedicationCardMapper {
 
     private fun mapDetails(details: OrdinationDetails?): MedicationStatement {
         val stmt = MedicationStatement()
+        stmt.subject = currentPatient()
         val dm = details?.drugMedication
         val treatment = details?.treatment
         val dosage = details?.dosage
@@ -108,6 +110,7 @@ class MedicationCardMapper {
 
     private fun mapEntry(entry: MedicationCardEntry): MedicationStatement {
         val stmt = MedicationStatement()
+        stmt.subject = currentPatient()
         stmt.id = "medstmt-${entry.ordinationId ?: UUID.randomUUID()}"
         entry.ordinationId?.let {
             stmt.identifier = listOf(
@@ -140,6 +143,12 @@ class MedicationCardMapper {
         stmt.dateAsserted = periodDate(entry.startDate)
         return stmt
     }
+
+    // The upstream medicine card belongs to the selected session patient.
+    // This logical identifier is session-scoped, not a portable patient identity.
+    private fun currentPatient(): Reference = Reference().setIdentifier(
+        Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
+    )
 
     private fun mapStatus(raw: String?): MedicationStatement.MedicationStatementStatus {
         return when (raw?.lowercase()) {

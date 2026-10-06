@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.Dosage
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.MedicationRequest
 import org.hl7.fhir.r4.model.Period
+import org.hl7.fhir.r4.model.Reference
 import org.springframework.stereotype.Component
 import java.time.OffsetDateTime
 import java.util.Date
@@ -54,6 +55,7 @@ class MedicationRequestMapper {
 
     private fun mapPrescription(prescription: PrescriptionResponse): MedicationRequest {
         val request = MedicationRequest()
+        request.subject = currentPatient()
         val prescriptionId = prescription.prescriptionId ?: UUID.randomUUID().toString()
         request.id = "presc-$prescriptionId"
         request.status = when (prescription.status?.lowercase()) {
@@ -93,6 +95,7 @@ class MedicationRequestMapper {
 
     private fun mapDetail(detail: OrdinationDetails, entry: MedicationCardEntry?): MedicationRequest {
         val request = MedicationRequest()
+        request.subject = currentPatient()
         val ordId = detail.drugMedication?.ordinationIdentifier ?: UUID.randomUUID().toString()
         request.id = "medreq-$ordId"
         request.status = if (detail.drugMedication?.hasNegativeConsent == true) {
@@ -142,6 +145,11 @@ class MedicationRequestMapper {
         }
         return request
     }
+
+    // Match the session-scoped logical patient used by the other session-only endpoints.
+    private fun currentPatient(): Reference = Reference().setIdentifier(
+        Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
+    )
 
     private fun parseDate(dateTime: String?): Date? {
         if (dateTime.isNullOrBlank()) return null

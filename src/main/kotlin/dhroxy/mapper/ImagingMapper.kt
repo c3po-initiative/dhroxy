@@ -11,7 +11,6 @@ import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.ImagingStudy
 import org.hl7.fhir.r4.model.Reference
 import org.springframework.stereotype.Component
-import java.security.MessageDigest
 import java.time.OffsetDateTime
 import java.util.Date
 import java.util.UUID
@@ -26,7 +25,10 @@ class ImagingMapper {
                 .setDisplay("Imaging")
         )
 
-    fun toDiagnosticReportBundle(payload: ImagingReferralResponse?, requestUrl: String): Bundle {
+    fun toDiagnosticReportBundle(payload: ImagingReferralResponse?, requestUrl: String): Bundle =
+        toDiagnosticReportBundle(listOfNotNull(payload), requestUrl)
+
+    fun toDiagnosticReportBundle(payloads: List<ImagingReferralResponse>, requestUrl: String): Bundle {
         val bundle = Bundle().apply {
             type = Bundle.BundleType.SEARCHSET
             link = listOf(Bundle.BundleLinkComponent().apply {
@@ -34,30 +36,31 @@ class ImagingMapper {
                 url = requestUrl
             })
         }
-        val response = payload ?: return bundle.apply { total = 0 }
-
         // Collect imaging studies to avoid duplicates
         val imagingEntries = mutableMapOf<String, Bundle.BundleEntryComponent>()
 
-        response.svar.forEach { svar ->
-            val studyRefs = svar.undersoegelser.mapNotNull { undersoegelse ->
-                val studyEntry = imagingEntries.getOrPut(undersoegelse.id ?: undersoegelse.billedId ?: UUID.randomUUID().toString()) {
-                    val imagingStudy = buildImagingStudy(response, svar, undersoegelse)
-                    Bundle.BundleEntryComponent().apply {
-                        fullUrl = "urn:uuid:${imagingStudy.idElement.idPart}"
-                        resource = imagingStudy
+        // Keep each report with its own referral metadata; merging only Svar loses it.
+        payloads.forEach { response ->
+            response.svar.forEach { svar ->
+                val studyRefs = svar.undersoegelser.mapNotNull { undersoegelse ->
+                    val studyEntry = imagingEntries.getOrPut(undersoegelse.id ?: undersoegelse.billedId ?: UUID.randomUUID().toString()) {
+                        val imagingStudy = buildImagingStudy(response, svar, undersoegelse)
+                        Bundle.BundleEntryComponent().apply {
+                            fullUrl = "urn:uuid:${imagingStudy.idElement.idPart}"
+                            resource = imagingStudy
+                        }
                     }
+                    Reference().apply { reference = studyEntry.fullUrl }
                 }
-                Reference().apply { reference = studyEntry.fullUrl }
-            }
 
-            val diagnosticReport = buildDiagnosticReport(response, svar, studyRefs)
-            bundle.addEntry(
-                Bundle.BundleEntryComponent().apply {
-                    fullUrl = "urn:uuid:${diagnosticReport.idElement.idPart}"
-                    resource = diagnosticReport
-                }
-            )
+                val diagnosticReport = buildDiagnosticReport(response, svar, studyRefs)
+                bundle.addEntry(
+                    Bundle.BundleEntryComponent().apply {
+                        fullUrl = "urn:uuid:${diagnosticReport.idElement.idPart}"
+                        resource = diagnosticReport
+                    }
+                )
+            }
         }
 
         imagingEntries.values.forEach { bundle.addEntry(it) }
@@ -65,7 +68,10 @@ class ImagingMapper {
         return bundle
     }
 
-    fun toImagingStudyBundle(payload: ImagingReferralResponse?, requestUrl: String): Bundle {
+    fun toImagingStudyBundle(payload: ImagingReferralResponse?, requestUrl: String): Bundle =
+        toImagingStudyBundle(listOfNotNull(payload), requestUrl)
+
+    fun toImagingStudyBundle(payloads: List<ImagingReferralResponse>, requestUrl: String): Bundle {
         val bundle = Bundle().apply {
             type = Bundle.BundleType.SEARCHSET
             link = listOf(Bundle.BundleLinkComponent().apply {
@@ -73,16 +79,17 @@ class ImagingMapper {
                 url = requestUrl
             })
         }
-        val response = payload ?: return bundle.apply { total = 0 }
-        response.svar.forEach { svar ->
-            svar.undersoegelser.forEach { undersoegelse ->
-                val imagingStudy = buildImagingStudy(response, svar, undersoegelse)
-                bundle.addEntry(
-                    Bundle.BundleEntryComponent().apply {
-                        fullUrl = "urn:uuid:${imagingStudy.idElement.idPart}"
-                        resource = imagingStudy
-                    }
-                )
+        payloads.forEach { response ->
+            response.svar.forEach { svar ->
+                svar.undersoegelser.forEach { undersoegelse ->
+                    val imagingStudy = buildImagingStudy(response, svar, undersoegelse)
+                    bundle.addEntry(
+                        Bundle.BundleEntryComponent().apply {
+                            fullUrl = "urn:uuid:${imagingStudy.idElement.idPart}"
+                            resource = imagingStudy
+                        }
+                    )
+                }
             }
         }
         bundle.total = bundle.entry.size
@@ -131,6 +138,9 @@ class ImagingMapper {
         undersoegelse: ImagingUndersoegelse
     ): ImagingStudy {
         val imagingStudy = ImagingStudy()
+        imagingStudy.subject = Reference().setIdentifier(
+            Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
+        )
         imagingStudy.id = "img-${safeId(undersoegelse.id ?: undersoegelse.billedId ?: UUID.randomUUID().toString())}"
         imagingStudy.identifier = listOfNotNull(
             response.id?.let { Identifier().setSystem("https://www.sundhed.dk/imaging/referral").setValue(it) },

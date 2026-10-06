@@ -91,7 +91,12 @@ class AppointmentMapper {
 
     private fun mapAppointment(item: AppointmentItem): Appointment {
         val apt = Appointment()
-        apt.id = "apt-${UUID.randomUUID()}"
+        // Preserve identity across repeat reads when the source provides a business key.
+        val sourceId = item.documentId?.takeIf { it.isNotBlank() }
+        val resourceId = sourceId?.let {
+            UUID.nameUUIDFromBytes("https://www.sundhed.dk/appointments/documentId|$it".toByteArray(Charsets.UTF_8))
+        } ?: UUID.randomUUID()
+        apt.id = "apt-$resourceId"
         apt.status = Appointment.AppointmentStatus.BOOKED
         apt.serviceType = listOf(
             CodeableConcept().addCoding(

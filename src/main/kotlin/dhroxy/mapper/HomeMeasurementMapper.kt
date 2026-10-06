@@ -4,6 +4,7 @@ import dhroxy.model.HomeMeasurementDocument
 import dhroxy.model.HomeMeasurementsResponse
 import org.hl7.fhir.r4.model.Bundle
 import org.hl7.fhir.r4.model.CodeableConcept
+import org.hl7.fhir.r4.model.CodeType
 import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.DateTimeType
 import org.hl7.fhir.r4.model.Identifier
@@ -56,9 +57,14 @@ class HomeMeasurementMapper {
                 .setDisplay("Vital Signs"))
         })
 
-        val displayName = doc.type ?: doc.name
-        displayName?.let {
-            obs.code = CodeableConcept().apply { text = it }
+        val displayName = doc.type?.takeIf { it.isNotBlank() }
+            ?: doc.name?.takeIf { it.isNotBlank() }
+        obs.code = CodeableConcept().apply {
+            if (displayName != null) {
+                text = displayName
+            } else {
+                addExtension("http://hl7.org/fhir/StructureDefinition/data-absent-reason", CodeType("unknown"))
+            }
         }
 
         doc.date?.let {

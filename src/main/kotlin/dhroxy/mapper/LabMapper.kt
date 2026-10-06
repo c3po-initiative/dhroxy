@@ -15,7 +15,6 @@ import org.hl7.fhir.r4.model.Quantity
 import org.hl7.fhir.r4.model.Reference
 import org.hl7.fhir.r4.model.StringType
 import org.springframework.stereotype.Component
-import java.security.MessageDigest
 import java.time.OffsetDateTime
 import java.util.Date
 import java.util.UUID
@@ -142,11 +141,10 @@ class LabMapper {
 
         rekvisition?.let {
             val subjectRef = Reference()
-            subjectRef.setIdentifier(
-                Identifier()
-                .setSystem("urn:dk:cpr")
-                .setValue(it.patientCpr ?: hashId(observation.id))
-            )
+            // A missing CPR must not be replaced by a synthetic value in the CPR namespace.
+            it.patientCpr?.takeIf { cpr -> cpr.isNotBlank() }?.let { cpr ->
+                subjectRef.identifier = Identifier().setSystem("urn:dk:cpr").setValue(cpr)
+            }
             subjectRef.display = it.patientNavn
             observation.setSubject(subjectRef)
         }
@@ -213,12 +211,6 @@ class LabMapper {
             .replace("[^a-z0-9]+".toRegex(), "-")
             .trim('-')
             .take(64)
-
-    private fun hashId(value: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val bytes = digest.digest(value.toByteArray(Charsets.UTF_8))
-        return bytes.joinToString("") { "%02x".format(it) }
-    }
 
     private fun emptyBundle(requestUrl: String): Bundle =
         Bundle().apply {

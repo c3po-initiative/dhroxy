@@ -4,6 +4,8 @@ import dhroxy.model.EnhedsInformation
 import dhroxy.model.ForloebEntry
 import dhroxy.model.KontaktperioderResponse
 import org.hl7.fhir.r4.model.Bundle
+import org.hl7.fhir.r4.model.CodeType
+import org.hl7.fhir.r4.model.Coding
 import org.hl7.fhir.r4.model.Encounter
 import org.hl7.fhir.r4.model.Identifier
 import org.hl7.fhir.r4.model.Reference
@@ -42,6 +44,10 @@ class EncounterMapper {
                 }
                 encounter.addIdentifier().setSystem("https://www.sundhed.dk/ejournal/forloeb").value = key
                 encounter.status = mapEncounterStatus(kp.status, kp.datoTil)
+                // The source does not distinguish inpatient, outpatient, or other classes.
+                encounter.class_ = Coding().apply {
+                    addExtension("http://hl7.org/fhir/StructureDefinition/data-absent-reason", CodeType("unknown"))
+                }
                 val period = encounter.period ?: org.hl7.fhir.r4.model.Period()
                 kp.datoFra?.let { period.start = Date.from(OffsetDateTime.parse(it).toInstant()) }
                 kp.datoTil?.let { period.end = Date.from(OffsetDateTime.parse(it).toInstant()) }
