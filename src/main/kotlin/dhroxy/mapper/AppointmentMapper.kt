@@ -116,7 +116,7 @@ class AppointmentMapper {
             apt.addParticipant(
                 Appointment.AppointmentParticipantComponent().apply {
                     actor = Reference().apply {
-                        setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it.personIdentifier))
+                        DanishFhir.cprIdentifier(it.personIdentifier)?.let { cprId -> setIdentifier(cprId) }
                         display = listOfNotNull(it.givenName, it.familyName).joinToString(" ")
                     }
                     status = Appointment.ParticipationStatus.ACCEPTED

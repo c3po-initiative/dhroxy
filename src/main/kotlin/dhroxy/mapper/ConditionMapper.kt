@@ -87,11 +87,7 @@ class ConditionMapper {
         entry.datoTil?.let { condition.setAbatement(org.hl7.fhir.r4.model.DateTimeType(Date.from(OffsetDateTime.parse(it).toInstant()))) }
         entry.datoOpdateret?.let { condition.recordedDate = Date.from(OffsetDateTime.parse(it).toInstant()) }
 
-        cpr?.let {
-            condition.subject = Reference().apply {
-                setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it))
-            }
-        }
+        condition.subject = DanishFhir.patientReference(cpr)
 
         entry.idNoegle?.noegle?.let {
             condition.addIdentifier().setSystem("https://www.sundhed.dk/ejournal/forloeb").value = it
@@ -134,11 +130,7 @@ class ConditionMapper {
         entry.datoFra?.let { condition.setOnset(org.hl7.fhir.r4.model.DateTimeType(Date.from(OffsetDateTime.parse(it).toInstant()))) }
         entry.datoTil?.let { condition.setAbatement(org.hl7.fhir.r4.model.DateTimeType(Date.from(OffsetDateTime.parse(it).toInstant()))) }
 
-        cpr?.let {
-            condition.subject = Reference().apply {
-                setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it))
-            }
-        }
+        condition.subject = DanishFhir.patientReference(cpr)
 
         condition.addIdentifier().setSystem("https://www.sundhed.dk/diagnoser").value = entry.diagnoseKode
 

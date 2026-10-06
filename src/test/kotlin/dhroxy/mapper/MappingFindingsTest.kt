@@ -40,7 +40,7 @@ class MappingFindingsTest {
             assertEquals("Synthetic patient", observation.subject.display)
         }
         assertEquals("0101010000", labObservation("0101010000").subject.identifier.value)
-        assertEquals("urn:dk:cpr", labObservation("0101010000").subject.identifier.system)
+        assertEquals("urn:oid:1.2.208.176.1.2", labObservation("0101010000").subject.identifier.system)
     }
 
     private fun labObservation(cpr: String?): Observation {
@@ -127,7 +127,7 @@ class MappingFindingsTest {
     }
 
     private fun assertSessionPatient(subject: Reference) {
-        assertEquals("https://www.sundhed.dk/patient", subject.identifier.system)
-        assertEquals("current", subject.identifier.value)
+        assertFalse(subject.hasIdentifier())
+        assertEquals("unknown", subject.getExtensionByUrl(absentReason).value.primitiveValue())
     }
 }

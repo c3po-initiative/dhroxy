@@ -53,13 +53,7 @@ class EncounterMapper {
                 kp.datoTil?.let { period.end = Date.from(OffsetDateTime.parse(it).toInstant()) }
                 encounter.setPeriod(period)
                 encounter.serviceProvider = kp.enhedsInformation?.let { toOrganizationRef(it) }
-                patientIdentifier?.let {
-                    encounter.setSubject(
-                        Reference().apply {
-                            setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it))
-                        }
-                    )
-                }
+                encounter.subject = DanishFhir.patientReference(patientIdentifier)
                 bundle.addEntry(Bundle.BundleEntryComponent().apply {
                     fullUrl = "urn:uuid:${UUID.randomUUID()}"
                     resource = encounter

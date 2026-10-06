@@ -14,10 +14,10 @@ class TransactionProviderIT : BaseProviderIntegrationTest() {
 
     @Test
     fun `transaction with GET entries succeeds`() = runBlocking {
-        coEvery { patientService.search(any(), any(), any(), any()) } returns bundleOf(
+        coEvery { patientService.search(any(), any(), any(), any(), any()) } returns bundleOf(
             Patient().apply {
                 id = "pat-1"
-                addIdentifier().apply { system = "urn:dk:cpr"; value = "0906817173" }
+                addIdentifier().apply { system = "urn:oid:1.2.208.176.1.2"; value = "0906817173" }
                 addName().setFamily("Tester").addGiven("Pat")
             }
         )
@@ -28,7 +28,7 @@ class TransactionProviderIT : BaseProviderIntegrationTest() {
                 Bundle.BundleEntryComponent().apply {
                     request = Bundle.BundleEntryRequestComponent().apply {
                         method = Bundle.HTTPVerb.GET
-                        url = "Patient?identifier=urn:dk:cpr|0906817173"
+                        url = "Patient?identifier=urn:oid:1.2.208.176.1.2|0906817173"
                     }
                 }
             )

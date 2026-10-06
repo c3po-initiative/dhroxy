@@ -30,6 +30,7 @@ class MedicationCardServiceTest {
     @Test
     fun `medicine card is fetched even when min-laege-organisation lookup is unavailable`() = runBlocking {
         coEvery { client.fetchMinLaegeOrganizationId(any()) } returns null
+        coEvery { client.fetchForloebsoversigt(any()) } returns null
         coEvery { client.fetchMedicationCard(any(), any()) } returns emptyList()
 
         val expected = Bundle().apply {

@@ -26,7 +26,7 @@ class VaccinationService(
         } else {
             emptyMap()
         }
-        return mapper.toImmunizationBundle(filtered, requestUrl, history)
+        return client.withPatientContext(mapper.toImmunizationBundle(filtered, requestUrl, history), headers)
     }
 
     private fun filterByStatus(records: List<VaccinationRecord>, status: String?): List<VaccinationRecord> {

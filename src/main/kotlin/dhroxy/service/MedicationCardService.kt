@@ -17,7 +17,7 @@ class MedicationCardService(
     suspend fun search(headers: HttpHeaders, sourceId: String?, status: String?, identifier: String?, requestUrl: String): Bundle {
         if (!identifier.isNullOrBlank()) {
             val details = client.fetchOrdinationDetails(identifier, headers)
-            return mapper.fromDetails(details, requestUrl)
+            return client.withPatientContext(mapper.fromDetails(details, requestUrl), headers)
         }
         // The medicine card is session-scoped, so it does not require a resolved
         // eservices/org id. We still honour an explicit sourceId/eservices override
@@ -30,7 +30,7 @@ class MedicationCardService(
             ?: client.fetchMinLaegeOrganizationId(headers)?.toString()
         val entries = client.fetchMedicationCard(eservicesId.orEmpty(), headers)
         val filtered = filterByStatus(entries, status)
-        return mapper.toMedicationStatementBundle(filtered, requestUrl)
+        return client.withPatientContext(mapper.toMedicationStatementBundle(filtered, requestUrl), headers)
     }
 
     private fun filterByStatus(entries: List<MedicationCardEntry>, status: String?): List<MedicationCardEntry> {

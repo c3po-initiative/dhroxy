@@ -21,7 +21,7 @@ class MedicationRequestService(
         if (!identifier.isNullOrBlank()) {
             val detail = client.fetchOrdinationDetails(identifier, headers)
             val entries = client.fetchMedicationCard(props.medicationCardEservicesId.orEmpty(), headers)
-            return mapper.toMedicationRequestBundle(listOfNotNull(detail), entries, requestUrl)
+            return client.withPatientContext(mapper.toMedicationRequestBundle(listOfNotNull(detail), entries, requestUrl), headers)
         }
         val eservicesId = props.medicationCardEservicesId ?: client.fetchMinLaegeOrganizationId(headers)?.toString()
         val entries: List<MedicationCardEntry> = if (!eservicesId.isNullOrBlank()) {
@@ -33,6 +33,6 @@ class MedicationRequestService(
         val prescriptions = runCatching { client.fetchPrescriptions(headers) }
             .onFailure { log.warn("Failed to fetch prescriptions; returning medicine-card data only", it) }
             .getOrDefault(emptyList())
-        return mapper.toMedicationRequestBundle(details, entries, requestUrl, prescriptions)
+        return client.withPatientContext(mapper.toMedicationRequestBundle(details, entries, requestUrl, prescriptions), headers)
     }
 }

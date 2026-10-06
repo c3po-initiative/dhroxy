@@ -9,6 +9,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider
 import ca.uhn.fhir.rest.server.SimpleBundleProvider
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails
 import dhroxy.service.OrganizationService
+import dhroxy.mapper.DanishFhir
 import kotlinx.coroutines.runBlocking
 import org.hl7.fhir.r4.model.Organization
 import org.springframework.http.HttpHeaders
@@ -27,6 +28,10 @@ class OrganizationProvider(
         details: ServletRequestDetails
     ): IBundleProvider {
         val headers = toHttpHeaders(details)
+        val tokens = collectTokens(identifier)
+        if (tokens.isNotEmpty() && tokens.none { it.system == null || it.system == DanishFhir.CVR_SYSTEM || it.system == "urn:dk:cvr" }) {
+            return SimpleBundleProvider(emptyList<Organization>())
+        }
         val (idParam, cvrParam) = extractIdentifier(identifier)
         val bundle = runBlocking {
             organizationService.search(
@@ -60,11 +65,11 @@ class OrganizationProvider(
         var cvr: String? = null
         tokens.forEach { token ->
             val value = token.value
-            val system = token.system?.lowercase()
+            val system = token.system
             if (!value.isNullOrBlank()) {
                 when {
-                    system?.contains("cvr") == true || value.length == 8 -> if (cvr == null) cvr = value
-                    else -> id = id ?: value.toIntOrNull()
+                    system == DanishFhir.CVR_SYSTEM || system == "urn:dk:cvr" || (system == null && value.length == 8) -> if (cvr == null) cvr = value
+                    system == null -> id = id ?: value.toIntOrNull()
                 }
             }
         }

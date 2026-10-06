@@ -1,6 +1,8 @@
 package dhroxy.service
 
 import dhroxy.client.SundhedClient
+import dhroxy.mapper.DanishFhir
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException
 import dhroxy.config.SundhedClientProperties
 import dhroxy.model.*
 import kotlinx.coroutines.async
@@ -30,16 +32,19 @@ class PatientSummaryService(
      * Fetches all clinical data for a patient in parallel and returns it for IPS generation.
      */
     suspend fun fetchSummaryData(headers: HttpHeaders, patientId: String?): PatientSummaryData = coroutineScope {
-        // Extract CPR from patient ID (format: pat-{cpr})
-        val cpr = patientId?.removePrefix("pat-")
+        // Clinical endpoints are session-scoped: a URL must never relabel another patient's data.
+        val forloeb = client.fetchForloebsoversigt(headers)
+        val cpr = DanishFhir.normalizeCpr(forloeb?.personNummer)
+        if (patientId != null && (cpr == null || patientId != "pat-$cpr")) {
+            throw InvalidRequestException("Requested patient does not match the clinical session")
+        }
 
         // Fetch all data sources in parallel
         val patientDeferred = async {
             val selection = client.fetchPersonSelection(headers)
-            selection?.personDelegationData?.find { it.cpr == cpr }
+            selection?.personDelegationData?.find { cpr != null && DanishFhir.normalizeCpr(it.cpr) == cpr }
         }
         val conditionsDeferred = async { client.fetchDiagnoser(headers) }
-        val forloebDeferred = async { client.fetchForloebsoversigt(headers) }
         val medicationsDeferred = async { fetchMedications(headers) }
         val immunizationsDeferred = async { client.fetchEffectuatedVaccinations(headers) }
         val observationsDeferred = async { fetchRecentObservations(headers) }
@@ -47,7 +52,7 @@ class PatientSummaryService(
         PatientSummaryData(
             patient = patientDeferred.await(),
             conditions = conditionsDeferred.await(),
-            forloeb = forloebDeferred.await(),
+            forloeb = forloeb,
             medications = medicationsDeferred.await(),
             immunizations = immunizationsDeferred.await(),
             observations = observationsDeferred.await(),

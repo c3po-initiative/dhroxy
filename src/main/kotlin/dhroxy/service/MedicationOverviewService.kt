@@ -25,11 +25,11 @@ class MedicationOverviewService(
         }
 
         if (details.isNotEmpty()) {
-            return mapper.toObservationBundle(details, entries, requestUrl)
+            return client.withPatientContext(mapper.toObservationBundle(details, entries, requestUrl), headers)
         }
 
         val ordination = client.fetchOrdinationOverview(headers)
         val prescriptions = client.fetchPrescriptionOverview(headers)
-        return mapper.toObservationBundle(ordination, prescriptions, requestUrl)
+        return client.withPatientContext(mapper.toObservationBundle(ordination, prescriptions, requestUrl), headers)
     }
 }

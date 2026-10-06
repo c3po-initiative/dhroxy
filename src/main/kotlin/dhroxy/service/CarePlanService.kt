@@ -13,6 +13,6 @@ class CarePlanService(
 ) {
     suspend fun search(headers: HttpHeaders, requestUrl: String): Bundle {
         val response = client.fetchCarePlans(headers)
-        return mapper.toBundle(response, requestUrl)
+        return client.withPatientContext(mapper.toBundle(response, requestUrl), headers)
     }
 }

@@ -33,16 +33,17 @@ class PatientMapper {
 
     private fun mapPatient(person: PersonDelegationData): Patient {
         val patient = Patient()
-        val idBase = person.cpr ?: person.id ?: UUID.randomUUID().toString()
+        val idBase = DanishFhir.normalizeCpr(person.cpr) ?: person.id ?: UUID.randomUUID().toString()
         patient.id = "pat-$idBase"
         person.cpr?.let {
-            patient.identifier = listOf(
-                Identifier().setSystem("urn:dk:cpr").setValue(it)
+            patient.identifier = listOfNotNull(
+                DanishFhir.cprIdentifier(it)
             )
         }
         val nameParts = person.name.orEmpty().trim().split(" ").filter { it.isNotBlank() }
         patient.addName(
             HumanName().apply {
+                text = person.name
                 if (nameParts.isNotEmpty()) {
                     family = nameParts.last()
                     given = nameParts.dropLast(1).map { org.hl7.fhir.r4.model.StringType(it) }

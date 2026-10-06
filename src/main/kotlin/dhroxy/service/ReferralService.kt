@@ -13,6 +13,6 @@ class ReferralService(
 ) {
     suspend fun search(headers: HttpHeaders, requestUrl: String): Bundle {
         val response = client.fetchHenvisninger(headers)
-        return mapper.toBundle(response, requestUrl)
+        return client.withPatientContext(mapper.toBundle(response, requestUrl), headers)
     }
 }

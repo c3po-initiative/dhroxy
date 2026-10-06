@@ -105,7 +105,7 @@ class LabMapper {
         }
 
         extractNumericValue(undersoegelse?.quantitativeFindings)?.let { value ->
-            observation.setValue(value)
+            observation.setValue(if (value.hasUnit()) value else StringType(value.value.toPlainString()))
         } ?: run {
             val narrativeValue = cleanText(result.konklusionHtml)
                 ?: cleanText(result.diagnoseHtml)
@@ -139,12 +139,9 @@ class LabMapper {
             observation.setPerformer(listOf(Reference().apply { display = it }))
         }
 
+        observation.subject = DanishFhir.patientReference()
         rekvisition?.let {
-            val subjectRef = Reference()
-            // A missing CPR must not be replaced by a synthetic value in the CPR namespace.
-            it.patientCpr?.takeIf { cpr -> cpr.isNotBlank() }?.let { cpr ->
-                subjectRef.identifier = Identifier().setSystem("urn:dk:cpr").setValue(cpr)
-            }
+            val subjectRef = DanishFhir.patientReference(it.patientCpr)
             subjectRef.display = it.patientNavn
             observation.setSubject(subjectRef)
         }
@@ -182,13 +179,8 @@ class LabMapper {
         if (row.size < 10) return null
         val value = row[9]?.toString()?.trim().orEmpty()
         if (value.isBlank() || value.equals("Ikke påvist", ignoreCase = true)) return null
-        val quantity = Quantity()
-        quantity.value = value.toBigDecimalOrNull() ?: return null
-        val unit = row.getOrNull(10)?.toString()?.trim().orEmpty()
-        if (unit.isNotBlank()) {
-            quantity.unit = unit
-        }
-        return quantity
+        val numericValue = value.toBigDecimalOrNull() ?: return null
+        return DanishFhir.quantity(numericValue, row.getOrNull(10)?.toString())
     }
 
     private fun mapStatus(statusCode: String?, statusText: String?): Observation.ObservationStatus {

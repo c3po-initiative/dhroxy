@@ -77,11 +77,8 @@ class HomeMeasurementMapper {
 
         if (doc.value != null) {
             val bigDecimalValue = doc.value.toBigDecimalOrNull()
-            if (bigDecimalValue != null && doc.unit != null) {
-                obs.value = Quantity().apply {
-                    value = bigDecimalValue
-                    unit = doc.unit
-                }
+            if (bigDecimalValue != null && !doc.unit.isNullOrBlank()) {
+                obs.value = DanishFhir.quantity(bigDecimalValue, doc.unit)
             } else {
                 obs.value = StringType(listOfNotNull(doc.value, doc.unit).joinToString(" "))
             }
@@ -91,9 +88,7 @@ class HomeMeasurementMapper {
             obs.addNote(org.hl7.fhir.r4.model.Annotation().apply { text = "Source: $it" })
         }
 
-        obs.subject = Reference().apply {
-            setIdentifier(Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current"))
-        }
+        obs.subject = DanishFhir.patientReference()
 
         return obs
     }

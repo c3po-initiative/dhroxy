@@ -102,6 +102,7 @@ class ImagingMapper {
         imagingStudyRefs: List<Reference>
     ): DiagnosticReport {
         val report = DiagnosticReport()
+        report.subject = DanishFhir.patientReference()
         report.id = "dr-${safeId(svar.id ?: svar.henvisningsId ?: UUID.randomUUID().toString())}"
         report.identifier = listOfNotNull(
             svar.id?.let { Identifier().setSystem("https://www.sundhed.dk/imaging/report").setValue(it) },
@@ -138,9 +139,7 @@ class ImagingMapper {
         undersoegelse: ImagingUndersoegelse
     ): ImagingStudy {
         val imagingStudy = ImagingStudy()
-        imagingStudy.subject = Reference().setIdentifier(
-            Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
-        )
+        imagingStudy.subject = DanishFhir.patientReference()
         imagingStudy.id = "img-${safeId(undersoegelse.id ?: undersoegelse.billedId ?: UUID.randomUUID().toString())}"
         imagingStudy.identifier = listOfNotNull(
             response.id?.let { Identifier().setSystem("https://www.sundhed.dk/imaging/referral").setValue(it) },

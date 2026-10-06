@@ -62,13 +62,7 @@ class VaccinationMapper {
             immunization.recorded = occurrenceDate
         }
         immunization.setPatient(
-            Reference().apply {
-                setIdentifier(
-                    Identifier()
-                        .setSystem("https://www.sundhed.dk/patient")
-                        .setValue("current")
-                )
-            }
+            DanishFhir.patientReference()
         )
         record.effectuatedBy?.let {
             immunization.setPerformer(

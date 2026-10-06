@@ -17,6 +17,8 @@ class ImagingServiceTest {
     private val service = ImagingService(client, ImagingMapper())
     private val headers = HttpHeaders()
 
+    init { coEvery { client.fetchForloebsoversigt(any()) } returns ForloebsoversigtResponse(personNummer = "010101-0000") }
+
     private fun response(key: String) = ImagingReferralResponse(
         id = "referral-$key",
         producent = ImagingProducent(navn = "Producer $key"),

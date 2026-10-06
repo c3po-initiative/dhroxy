@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class PatientProviderIT : BaseProviderIntegrationTest() {
     @Test
     fun `patient search returns result`() = runBlocking {
-        coEvery { patientService.search(any(), any(), any(), any()) } returns
+        coEvery { patientService.search(any(), any(), any(), any(), any()) } returns
             Bundle().apply {
                 type = Bundle.BundleType.SEARCHSET
                 total = 3
@@ -27,7 +27,7 @@ class PatientProviderIT : BaseProviderIntegrationTest() {
                     fullUrl = "http://localhost:8080/fhir/Patient/pat-0906817173"
                     resource = Patient().apply {
                         id = "pat-0906817173"
-                        addIdentifier().apply { system = "urn:dk:cpr"; value = "0906817173" }
+                        addIdentifier().apply { system = "urn:oid:1.2.208.176.1.2"; value = "0906817173" }
                         addName().apply {
                             family = "Jørgensen"
                             given = listOf(org.hl7.fhir.r4.model.StringType("Jens"), org.hl7.fhir.r4.model.StringType("Kristian"))
@@ -39,7 +39,7 @@ class PatientProviderIT : BaseProviderIntegrationTest() {
                     fullUrl = "http://localhost:8080/fhir/Patient/pat-0707173333"
                     resource = Patient().apply {
                         id = "pat-0707173333"
-                        addIdentifier().apply { system = "urn:dk:cpr"; value = "0707173333" }
+                        addIdentifier().apply { system = "urn:oid:1.2.208.176.1.2"; value = "0707173333" }
                         addName().apply {
                             family = "Jørgensen"
                             given = listOf(org.hl7.fhir.r4.model.StringType("Søren"), org.hl7.fhir.r4.model.StringType("Isaksen"))
@@ -51,7 +51,7 @@ class PatientProviderIT : BaseProviderIntegrationTest() {
                     fullUrl = "http://localhost:8080/fhir/Patient/pat-1207131111"
                     resource = Patient().apply {
                         id = "pat-1207131111"
-                        addIdentifier().apply { system = "urn:dk:cpr"; value = "1207131111" }
+                        addIdentifier().apply { system = "urn:oid:1.2.208.176.1.2"; value = "1207131111" }
                         addName().apply {
                             family = "Jørgensen"
                             given = listOf(org.hl7.fhir.r4.model.StringType("Benny"), org.hl7.fhir.r4.model.StringType("Isaksen"))
@@ -61,10 +61,10 @@ class PatientProviderIT : BaseProviderIntegrationTest() {
                 })
             }
 
-        // GET /fhir/Patient?identifier=urn:dk:cpr|0906817173
+        // GET /fhir/Patient?identifier=urn:oid:1.2.208.176.1.2|0906817173
         val bundle = client.search<Bundle>()
             .forResource(Patient::class.java)
-            .where(Patient.IDENTIFIER.exactly().systemAndIdentifier("urn:dk:cpr", "0906817173"))
+            .where(Patient.IDENTIFIER.exactly().systemAndIdentifier("urn:oid:1.2.208.176.1.2", "0906817173"))
             .returnBundle(Bundle::class.java)
             .execute()
 

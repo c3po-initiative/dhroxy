@@ -17,7 +17,7 @@ class ConditionMapperTest {
     @Test
     fun `maps forloeb entries to conditions`() {
         val forloeb = ForloebsoversigtResponse(
-            personNummer = "123456-7890",
+            personNummer = "010101-0000",
             forloeb = listOf(
                 ForloebEntry(
                     diagnoseKode = "DJ069",
@@ -36,7 +36,7 @@ class ConditionMapperTest {
         assertEquals("Akut infektion i øvre luftveje", condition.code.text)
         assertEquals("DJ069", condition.code.codingFirstRep.code)
         assertEquals("active", condition.clinicalStatus.codingFirstRep.code)
-        assertEquals("1234567890", condition.subject.identifier.value)
+        assertEquals("0101010000", condition.subject.identifier.value)
         assertNotNull(condition.onsetDateTimeType)
     }
 
@@ -69,7 +69,7 @@ class ConditionMapperTest {
     @Test
     fun `merges conditions from both sources`() {
         val forloeb = ForloebsoversigtResponse(
-            personNummer = "123456-7890",
+            personNummer = "010101-0000",
             forloeb = listOf(
                 ForloebEntry(
                     diagnoseKode = "DJ069",

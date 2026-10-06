@@ -129,9 +129,7 @@ class ReferralMapper {
             sr.note = notes
         }
 
-        sr.subject = Reference().apply {
-            setIdentifier(Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current"))
-        }
+        sr.subject = DanishFhir.patientReference()
 
         return sr
     }

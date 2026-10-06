@@ -12,25 +12,32 @@ const ident = (system, value) => (value === undefined || value === null || value
 const cc = (text, ...codings) => ({ text, coding: codings.filter((c) => c && c.code) });
 
 // ---------- Patient ----------
-export function cprFrom({ forloeb, labs, persons }) {
-  const fromForloeb = str(g(forloeb, "personNummer"))?.replace(/-/g, "");
-  if (fromForloeb) return fromForloeb;
-  const rek = arr(g(labs, "Svaroversigt", "Rekvisitioner")).find((r) => g(r, "PatientCpr"));
-  if (rek) return String(g(rek, "PatientCpr")).replace(/-/g, "");
-  const list = arr(g(persons, "personDelegationData"));
-  return list.length ? str(g(list[0], "cpr"))?.replace(/-/g, "") : undefined;
+export function normalizeCpr(raw) {
+  const value = str(raw)?.trim().replace(/-/g, "");
+  return value && /^(((0[1-9]|[12][0-9]|3[01])(01|03|05|07|08|10|12))|((0[1-9]|[12][0-9]|30)(04|06|09|11))|((0[1-9]|[12][0-9])(02)))[0-9]{6}$/.test(value) ? value : undefined;
+}
+
+export function cprFrom({ forloeb, labs }) {
+  const journal = normalizeCpr(g(forloeb, "personNummer"));
+  const labCprs = new Set(arr(g(labs, "Svaroversigt", "Rekvisitioner"))
+    .map((r) => normalizeCpr(g(r, "PatientCpr"))).filter(Boolean));
+  // Conflicting clinical identities require a new collection, never a guess.
+  if (labCprs.size > 1 || (journal && labCprs.size && !labCprs.has(journal)))
+    throw new Error("Clinical sources identify different patients; reload and collect again.");
+  return journal || [...labCprs][0];
 }
 
 export function mapPatient({ cpr, persons, forloeb }) {
+  cpr = normalizeCpr(cpr);
   const list = arr(g(persons, "personDelegationData"));
-  const me = list.find((p) => str(g(p, "cpr"))?.replace(/-/g, "") === cpr) || (list.length === 1 ? list[0] : undefined);
+  const me = cpr ? list.find((p) => normalizeCpr(g(p, "cpr")) === cpr) : undefined;
   const fullName = str(g(me, "name")) || str(g(forloeb, "navn"));
   const parts = (fullName || "").trim().split(/\s+/).filter(Boolean);
   const rel = str(g(me, "relationType"));
   return prune({
     resourceType: "Patient",
     id: `pat-${cpr || "unknown"}`,
-    identifier: [ident("urn:dk:cpr", cpr)],
+    identifier: [ident("urn:oid:1.2.208.176.1.2", cpr)],
     name: [parts.length ? { text: fullName, family: parts.at(-1), given: parts.slice(0, -1) } : undefined],
     extension: rel ? [{ url: `${SDK}/fhir/StructureDefinition/relationType`, valueCode: rel }] : undefined
   });
@@ -54,7 +61,9 @@ function labQuantity(qf) {
   const value = parseDecimal(raw);
   if (value === undefined) return undefined;
   const unit = str(row[10])?.trim();
-  return { value, unit };
+  const known = new Set(["kg", "g", "mg", "mmol/L", "mol/L", "mg/L", "g/L", "mg/dL", "cm", "m", "%"]);
+  const code = known.has(unit) ? unit : new Map([["mmHg", "mm[Hg]"], ["mm[Hg]", "mm[Hg]"], ["°C", "Cel"], ["Cel", "Cel"]]).get(unit);
+  return { value, unit, ...(code ? { system: "http://unitsofmeasure.org", code } : {}) };
 }
 
 export function mapLabs(labs, patientRef) {
@@ -93,8 +102,8 @@ export function mapLabs(labs, patientRef) {
       effectiveDateTime: effective,
       issued: fhirInstant(g(res, "Resultatdato")),
       performer: performer ? [{ display: performer }] : undefined,
-      valueQuantity: qty,
-      valueString: qty ? undefined : narrative,
+      valueQuantity: qty?.unit ? qty : undefined,
+      valueString: qty ? (qty.unit ? undefined : String(qty.value)) : narrative,
       referenceRange: g(res, "ReferenceIntervalTekst") ? [{ text: str(g(res, "ReferenceIntervalTekst")) }] : undefined,
       note: notes
     });
@@ -393,7 +402,7 @@ export function mapOrganizations(resp) {
     return prune({
       resourceType: "Organization",
       id: `org-${safeId(id)}`,
-      identifier: [ident("urn:dk:cvr", g(o, "CvrNumber"))],
+      identifier: [ident("http://cvr.dk", g(o, "CvrNumber"))],
       name: nonBlank(str(g(o, "DisplayName")), str(g(o, "Name"))) || `Organization ${id}`,
       type: cat ? [cc(cat, { system: `${SDK}/organization/category`, code: cat.toLowerCase().replace(/ /g, "-"), display: cat })] : undefined,
       address: [{ line: line ? [line] : undefined, city: str(g(o, "City")), postalCode: str(g(o, "ZipCode")), district: str(g(o, "Municipality")), country: "DK" }],

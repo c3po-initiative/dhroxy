@@ -76,9 +76,7 @@ class CarePlanMapper {
             plan.author = Reference().apply { display = it }
         }
 
-        plan.subject = Reference().apply {
-            setIdentifier(Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current"))
-        }
+        plan.subject = DanishFhir.patientReference()
 
         return plan
     }

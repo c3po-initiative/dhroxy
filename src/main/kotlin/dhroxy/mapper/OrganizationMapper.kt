@@ -33,7 +33,7 @@ class OrganizationMapper {
         organization.id = "org-$id"
         record.cvrNumber?.let {
             organization.identifier = listOf(
-                Identifier().setSystem("urn:dk:cvr").setValue(it.toString())
+                Identifier().setSystem(DanishFhir.CVR_SYSTEM).setValue(it.toString())
             )
         }
         organization.name = record.displayName ?: record.name ?: "Organization $id"

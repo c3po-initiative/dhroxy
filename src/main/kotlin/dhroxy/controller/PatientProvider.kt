@@ -37,7 +37,7 @@ class PatientProvider(
     ): IBundleProvider {
         val headers = toHttpHeaders(details)
         val bundle = runBlocking {
-            patientService.search(headers, name?.value, identifier?.value, requestUrl(details))
+            patientService.search(headers, name?.value, identifier?.value, requestUrl(details), identifier?.system)
         }
         return SimpleBundleProvider(bundle.entry.mapNotNull { it.resource as? Patient })
     }

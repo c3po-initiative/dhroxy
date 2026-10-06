@@ -146,9 +146,7 @@ class MedicationCardMapper {
 
     // The upstream medicine card belongs to the selected session patient.
     // This logical identifier is session-scoped, not a portable patient identity.
-    private fun currentPatient(): Reference = Reference().setIdentifier(
-        Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
-    )
+    private fun currentPatient(): Reference = DanishFhir.patientReference()
 
     private fun mapStatus(raw: String?): MedicationStatement.MedicationStatementStatus {
         return when (raw?.lowercase()) {

@@ -82,11 +82,7 @@ class DocumentReferenceMapper {
         doc.status = org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus.CURRENT
         entry.datoFra?.let { doc.date = Date.from(OffsetDateTime.parse(it).toInstant()) }
         doc.description = entry.overskrift
-        patientIdentifier?.let {
-            doc.subject = Reference().apply {
-                setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it))
-            }
-        }
+        doc.subject = DanishFhir.patientReference(patientIdentifier)
         val content = DocumentReference.DocumentReferenceContentComponent().apply {
             val dataBytes = (entry.broedtekst ?: entry.fritekst ?: "").toByteArray(Charsets.UTF_8)
             attachment = org.hl7.fhir.r4.model.Attachment().apply {
@@ -114,11 +110,7 @@ class DocumentReferenceMapper {
         doc.status = org.hl7.fhir.r4.model.Enumerations.DocumentReferenceStatus.CURRENT
         entry.datoFra?.let { doc.date = Date.from(OffsetDateTime.parse(it).toInstant()) }
         doc.description = entry.overskrift
-        patientIdentifier?.let {
-            doc.subject = Reference().apply {
-                setIdentifier(Identifier().setSystem("urn:dk:cpr").setValue(it))
-            }
-        }
+        doc.subject = DanishFhir.patientReference(patientIdentifier)
         val content = DocumentReference.DocumentReferenceContentComponent().apply {
             val dataBytes = (entry.broedtekst ?: entry.fritekst ?: "").toByteArray(Charsets.UTF_8)
             attachment = org.hl7.fhir.r4.model.Attachment().apply {

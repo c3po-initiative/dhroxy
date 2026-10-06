@@ -102,18 +102,17 @@ class PatientSummaryMapper {
 
     private fun createPatient(data: PatientSummaryData): Patient {
         val patient = Patient()
-        patient.id = data.cpr?.let { "pat-$it" } ?: "pat-${UUID.randomUUID()}"
+        patient.id = DanishFhir.normalizeCpr(data.cpr)?.let { "pat-$it" } ?: "pat-${UUID.randomUUID()}"
         patient.meta = Meta().addProfile(IPS_PATIENT_PROFILE)
 
         data.cpr?.let {
-            patient.addIdentifier(Identifier()
-                .setSystem("urn:dk:cpr")
-                .setValue(it))
+            DanishFhir.cprIdentifier(it)?.let(patient::addIdentifier)
         }
 
         data.patient?.name?.let { fullName ->
             val nameParts = fullName.trim().split(" ").filter { it.isNotBlank() }
             patient.addName(HumanName().apply {
+                text = fullName
                 if (nameParts.isNotEmpty()) {
                     family = nameParts.last()
                     given = nameParts.dropLast(1).map { StringType(it) }
@@ -438,7 +437,7 @@ class PatientSummaryMapper {
             }
 
             // Set value
-            extractNumericValue(undersoegelse?.quantitativeFindings)?.let { setValue(it) }
+            extractNumericValue(undersoegelse?.quantitativeFindings)?.let { setValue(if (it.hasUnit()) it else StringType(it.value.toPlainString())) }
                 ?: result.vaerdi?.let { setValue(StringType(it)) }
 
             result.referenceIntervalTekst?.let {
@@ -462,10 +461,7 @@ class PatientSummaryMapper {
         val value = row[9]?.toString()?.trim().orEmpty()
         if (value.isBlank() || value.equals("Ikke påvist", ignoreCase = true)) return null
         val numericValue = value.toBigDecimalOrNull() ?: return null
-        return Quantity().apply {
-            this.value = numericValue
-            row.getOrNull(10)?.toString()?.trim()?.takeIf { it.isNotBlank() }?.let { unit = it }
-        }
+        return DanishFhir.quantity(numericValue, row.getOrNull(10)?.toString())
     }
 
     private fun mapObservationStatus(statusCode: String?, statusText: String?): Observation.ObservationStatus {

@@ -147,9 +147,7 @@ class MedicationRequestMapper {
     }
 
     // Match the session-scoped logical patient used by the other session-only endpoints.
-    private fun currentPatient(): Reference = Reference().setIdentifier(
-        Identifier().setSystem("https://www.sundhed.dk/patient").setValue("current")
-    )
+    private fun currentPatient(): Reference = DanishFhir.patientReference()
 
     private fun parseDate(dateTime: String?): Date? {
         if (dateTime.isNullOrBlank()) return null

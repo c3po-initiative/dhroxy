@@ -37,7 +37,7 @@ class ImagingService(
                 )
             }
         }
-        return mapper.toDiagnosticReportBundle(responses, requestUrl)
+        return client.withPatientContext(mapper.toDiagnosticReportBundle(responses, requestUrl), headers)
     }
 
     suspend fun imagingStudies(
@@ -69,6 +69,6 @@ class ImagingService(
                 )
             }
         }
-        return mapper.toImagingStudyBundle(responses, requestUrl)
+        return client.withPatientContext(mapper.toImagingStudyBundle(responses, requestUrl), headers)
     }
 }
